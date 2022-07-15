@@ -2,7 +2,7 @@
   "name": "app_chat_server",
   "version": "1.0.0",
   "description": "NodeJs + mySql",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,7 +19,9 @@
   "dependencies": {
     "cros": "^1.0.1",
     "express": "^4.18.1",
+    "mysql": "^2.18.1",
     "no-save": "^1.0.0",
-    "socket-io": "^1.0.0"
+    "socket.io": "^4.5.1",
+    "swagger-ui-express": "^4.5.0"
   }
 }
