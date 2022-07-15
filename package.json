@@ -1,0 +1,25 @@
+{
+  "name": "app_chat_server",
+  "version": "1.0.0",
+  "description": "NodeJs + mySql",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quangnd2203/chat_app_server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/quangnd2203/chat_app_server/issues"
+  },
+  "homepage": "https://github.com/quangnd2203/chat_app_server#readme",
+  "dependencies": {
+    "cros": "^1.0.1",
+    "express": "^4.18.1",
+    "no-save": "^1.0.0",
+    "socket-io": "^1.0.0"
+  }
+}
