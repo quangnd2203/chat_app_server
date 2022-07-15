@@ -1,17 +1,16 @@
-const mySql = require('mysql');
+var sql_connection = require('./sql_connection');
+
 const app = require('./app');
 
-let server;
-
-let conn = mySql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    database: 'chat_app_db'
-});
-
-conn.connect((error) => {
-    if(error) throw error;
-    server = app.listen(3000, () => {
-        console.log('Connected');
+sql_connection.createConnection().then((conn) => {
+    conn.connect((error) => {
+        if(error) throw error;
+        app.listen(3000, () => {
+            console.log('Connected');
+            conn.query('CALL `userGetAll`();', (err, result,) => {
+                console.log(result);
+            })
+        });
     });
+    sql_connection.query = conn.query;
 });
