@@ -1,25 +1,30 @@
+const NetworkResponse = require('../models/network_response');
+const UserModel = require('../models/user_model');
+const userRepository = require('../repositories/user_repository');
 
-// function getUser(){
-//     SqlConnection().conn.query('CALL `userGetAll`();', (err, result,) => {
-//         // if (err != null) response.send(NetworkResponse.fromErrors(error = err.code));
-//         // else response.send(
-//         //     new NetworkResponse(
-//         //         status = 1,
-//         //         message = 'success',
-//         //         data = result[0].map(json => new UserModel(
-//         //             id = json.id,
-//         //             uid = json.uid,
-//         //             name = json.name,
-//         //             email = json.email,
-//         //             accountType = json.accountType,
-//         //             avatar = json.avatar,
-//         //             background = json.background,
-//         //             createAt = json.created_at,
-//         //             updateAt = json.update_at,
-//         //         )),
-//         //     ),
-//         // );
-
-//     });
-// }
-// module.exports.getUser = getUser();
+module.exports.getUser = async () => {
+    try {
+        const users = await userRepository.getUser();
+        console.log(users);
+        return new NetworkResponse(
+            status = 1,
+            message = null,
+            data = users.map(u => new UserModel(
+                u.id,
+                u.uid,
+                u.name,
+                u.email,
+                u.accountType,
+                u.avatar,
+                u.background,
+                null,
+                null,
+                u.created_at,
+                u.updated_at,
+            )),
+        );
+    } catch (e) {
+        console.log(e);
+        return NetworkResponse.fromErrors('cant_find_users');
+    }
+};

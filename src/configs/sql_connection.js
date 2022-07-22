@@ -1,4 +1,4 @@
-const mySql = require('mysql');
+const mySql = require('promise-mysql');
 
 // const dataBaseConfigs = {
 //     host: 'sql6.freemysqlhosting.net',
@@ -15,17 +15,19 @@ const dataBaseConfigs = {
     port: '3306',
 }
 
+var db;
 
-function SqlConnection(){
-    if(typeof SqlConnection.instance === 'object'){
-        return SqlConnection.instance;
+module.exports.createConnection = async () => {
+    try{
+        db = await mySql.createConnection(dataBaseConfigs);
+        console.log('Connected');
+        return true;
+    }catch(e){
+        console.log('Connect failed: '+ e);
+        return false;
     }
-
-    conn = mySql.createConnection(dataBaseConfigs);
-
-    SqlConnection.instance = this;
-
-    return SqlConnection.instance;
 }
 
-module.exports = SqlConnection;
+module.exports.query = async (query) => {
+    return (await db.query(query))[0];
+}

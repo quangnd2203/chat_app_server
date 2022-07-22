@@ -1,9 +1,5 @@
-const SqlConnection = require('../configs/sql_connection');
+const sqlConnection = require('../configs/sql_connection');
 
-function getUser() {
-    return SqlConnection().conn.query('CALL `userGetAll`();', (err, data) => {
-        return data[0];
-    });
-}
-
-module.exports.getUser = getUser;
+module.exports.getUser = async () => {
+    const users = await sqlConnection.query('CALL `userGetAll`();');
+};
