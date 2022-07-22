@@ -5,7 +5,6 @@ const userRepository = require('../repositories/user_repository');
 module.exports.getUser = async () => {
     try {
         const users = await userRepository.getUser();
-        console.log(users);
         return new NetworkResponse(
             status = 1,
             message = null,
@@ -17,8 +16,6 @@ module.exports.getUser = async () => {
                 u.accountType,
                 u.avatar,
                 u.background,
-                null,
-                null,
                 u.created_at,
                 u.updated_at,
             )),

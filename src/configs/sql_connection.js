@@ -28,6 +28,6 @@ module.exports.createConnection = async () => {
     }
 }
 
-module.exports.query = async (query) => {
-    return (await db.query(query))[0];
+module.exports.query = async (query, param = []) => {
+    return (await db.query(query, param))[0];
 }

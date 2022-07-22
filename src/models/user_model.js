@@ -7,13 +7,11 @@
  * @param {string} accountType
  * @param {string} avatar
  * @param {string} background
- * @param {string} accessToken
- * @param {string} fcmToken
  * @param {Date} createdAt
  * @param {Date} updatedAt
  */
 
-function UserModel(id, uid, name, email, accountType, avatar, background, accessToken, fcmToken, createdAt, updatedAt){
+function UserModel(id, uid, name, email, accountType, avatar, background, createdAt, updatedAt){
     this.id = id;
     this.uid = uid;       
     this.name = name;
@@ -21,8 +19,6 @@ function UserModel(id, uid, name, email, accountType, avatar, background, access
     this.accountType = accountType;
     this.avatar = avatar;
     this.background = background;
-    this.accessToken = accessToken;
-    this.fcmToken = fcmToken;
     this.createAt = createdAt;
     this.updateAt = updatedAt;
 }
