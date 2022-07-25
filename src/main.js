@@ -1,6 +1,5 @@
 const sqlConnection = require('./configs/sql_connection');
 const app = require('./app');
-const os = require('os');
 require('dotenv').config('./.env');
 
 sqlConnection.createConnection().then((value) => {
