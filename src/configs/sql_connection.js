@@ -1,25 +1,9 @@
 const mySql = require('promise-mysql');
-
-// const dataBaseConfigs = {
-//     host: 'sql6.freemysqlhosting.net',
-//     user: 'sql6507616',
-//     database: 'sql6507616',
-//     password: 'hWJCEHDn86',
-//     port: '3306',
-// }
-
-const dataBaseConfigs = {
-    host: 'localhost',
-    user: 'root',
-    database: 'chat_app_db',
-    port: '3306',
-}
-
 var db;
 
 module.exports.createConnection = async () => {
     try{
-        db = await mySql.createConnection(dataBaseConfigs);
+        db = await mySql.createConnection(JSON.parse(process.env.MYSQL_CONFIGS));
         console.log('Connected');
         return true;
     }catch(e){

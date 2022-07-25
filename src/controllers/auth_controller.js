@@ -6,23 +6,23 @@ const utils = require('../utils/utils');
 module.exports.loginNormal = async (email, password) => {
     try {
         const hashPass = utils.hashPassword(password);
-        const u = await authRepository.loginNormal(email, hashPass);
+        const user = await authRepository.loginNormal(email, hashPass);
         return new NetworkResponse(
-            status = 1,
-            message = null,
-            data = {
+            1,
+            null,
+            {
                 user: new UserModel(
-                    u.id,
-                    u.uid,
-                    u.name,
-                    u.email,
-                    u.accountType,
-                    u.avatar,
-                    u.background,
-                    u.created_at,
-                    u.updated_at,
+                    user.id,
+                    user.uid,
+                    user.name,
+                    user.email,
+                    user.accountType,
+                    user.avatar,
+                    user.background,
+                    user.created_at,
+                    user.updated_at,
                 ),
-                accessToken : u.accessToken,
+                accessToken: user.accessToken,
             },
         );
     } catch (e) {
@@ -30,3 +30,35 @@ module.exports.loginNormal = async (email, password) => {
         return NetworkResponse.fromErrors('cant_find_users');
     }
 };
+
+module.exports.register = async (name, email, password, type, fcmToken) => {
+    try{
+        let hassPass = null;
+        if(!password) hassPass = utils.hashPassword(password);
+        const data = await authRepository.register(name, email, password, type, fcmToken);
+        let response = new NetworkResponse(
+            data.status.status,
+            data.status.message,
+        );
+        if(response.status == 1){
+            response.data = {
+                user: new UserModel(
+                    data.user.id,
+                    data.user.uid,
+                    data.user.name,
+                    data.user.email,
+                    data.user.accountType,
+                    data.user.avatar,
+                    data.user.background,
+                    data.user.created_at,
+                    data.user.updated_at,
+                ),
+                accessToken: data.user.accessToken,
+            };
+        }
+        return response;
+    } catch (e) {
+        console.log(e);
+        return NetworkResponse.fromErrors('cant_register');
+    }
+}

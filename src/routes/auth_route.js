@@ -8,4 +8,11 @@ router.post('/loginNormal', (request, response) => {
     })
 });
 
+router.post('/register', (request, response) => {
+    const body = request.body;
+    authController.register(body.name, body.email, body.password, 'normal', body.fcmToken).then((value) => {
+        response.send(value);
+    })
+});
+
 module.exports = router;
