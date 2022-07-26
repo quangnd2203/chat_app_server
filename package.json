@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/quangnd2203/chat_app_server#readme",
   "dependencies": {
+    "axios": "^0.27.2",
     "cros": "^1.0.1",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.0.1",

@@ -1,6 +1,7 @@
 const express = require('express');
 const authController = require('../controllers/auth_controller');
 const router = express.Router();
+const authorizeMiddleware = require('../middlewares/authorize_middleware');
 
 router.post('/loginNormal', (request, response) => {
     authController.loginNormal(request.body.email, request.body.password, request.body.fcmToken).then((value) => {
@@ -18,6 +19,12 @@ router.post('/register', (request, response) => {
 router.post('/loginSocial', (request, response) => {
     const body = request.body;
     authController.loginSocial(body.socialToken, body.accountType).then((value) => {
+        response.send(value);
+    });
+});
+
+router.get('/authorized', authorizeMiddleware, (request, response) => {
+    authController.authorized(request.user, request.token).then((value) => {
         response.send(value);
     });
 });

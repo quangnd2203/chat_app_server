@@ -64,7 +64,7 @@ module.exports.register = async (name, email, password, type, fcmToken) => {
 
 module.exports.loginSocial = async (socialToken, accountType, fcmToken) => {
     try{
-        const socialUser = await socialRepository.getUserGoogleInfo(socialToken);
+        const socialUser = await socialRepository.loginSocial(socialToken, accountType);
         const user = await authRepository.loginSocical(socialUser.name, socialUser.id.toString(), accountType, fcmToken);
         return new NetworkResponse(
             1,
@@ -88,4 +88,25 @@ module.exports.loginSocial = async (socialToken, accountType, fcmToken) => {
         console.log(e);
         return NetworkResponse.fromErrors(e.message || 'cant_get_user');
     }
+}
+
+module.exports.authorized = async (user, token) => {
+    return new NetworkResponse(
+        1,
+        null,
+        {
+            user: new UserModel(
+                user.id,
+                user.uid,
+                user.name,
+                user.email,
+                user.accountType,
+                user.avatar,
+                user.background,
+                user.created_at,
+                user.updated_at,
+            ),
+            accessToken: token,
+        }
+    );
 }
