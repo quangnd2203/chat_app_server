@@ -1,14 +1,16 @@
 const sqlConnection = require('../configs/sql_connection');
 const utils = require('../utils/utils');
 
-module.exports.loginNormal = async (email, password) => {
+module.exports.login = async (email, password, fcmToken, accountType = 'normal') => {
     const accessToken = utils.generateJWT(email);
-    const users = await sqlConnection.query('CALL `userLoginNormal`(?,?,?);', [email, password, accessToken]);
+    const users = await sqlConnection.query('CALL `userLogin`(?,?,?,?,?);', [email, password, accountType ,accessToken, fcmToken]);
+    if((users?.length || 0) == 0) throw Error('ivalid_user'); 
     return users[0];
 }
 
 module.exports.authorize = async (email, token) => {
     const users = await sqlConnection.query('CALL `userAuthorize`(?,?);', [email, token]);
+    if((users?.length || 0) == 0) throw Error('ivalid_user'); 
     return users[0];
 }
 
@@ -16,8 +18,17 @@ module.exports.register = async (name, email, password, type, fcmToken) => {
     const accessToken = utils.generateJWT(email);
     const users = await sqlConnection.query('CALL `userRegister`(?,?,?,?,?,?, @message, @status)', [name, email, password, type, accessToken, fcmToken,]);
     const recordStatus = await sqlConnection.query('CALL `systemGetStatus`(@message, @status)');
-    return {
-        user: (users != null) ? users[0] : null,
-        status: recordStatus[0],
-    };
+    if(!recordStatus || recordStatus[0].status == 0) throw Error(recordStatus[0].status || 'ivalid_user');
+    return users[0];
+}
+
+
+module.exports.loginSocical = async (name, socialId, accountType, fcmToken) => {
+    var user;
+    try{
+        user = await this.login(socialId, null, fcmToken, accountType);
+    } catch(e){
+        user = await this.register(name, socialId, null, accountType, fcmToken);
+    }
+    return user;
 }

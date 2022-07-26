@@ -3,7 +3,7 @@ const authController = require('../controllers/auth_controller');
 const router = express.Router();
 
 router.post('/loginNormal', (request, response) => {
-    authController.loginNormal(request.body.email, request.body.password).then((value) => {
+    authController.loginNormal(request.body.email, request.body.password, request.body.fcmToken).then((value) => {
         response.send(value);
     })
 });
@@ -13,6 +13,13 @@ router.post('/register', (request, response) => {
     authController.register(body.name, body.email, body.password, 'normal', body.fcmToken).then((value) => {
         response.send(value);
     })
+});
+
+router.post('/loginSocial', (request, response) => {
+    const body = request.body;
+    authController.loginSocial(body.socialToken, body.accountType).then((value) => {
+        response.send(value);
+    });
 });
 
 module.exports = router;
