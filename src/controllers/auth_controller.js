@@ -3,11 +3,16 @@ const UserModel = require('../models/user_model');
 const authRepository = require('../repositories/auth_repository');
 const socialRepository = require('../repositories/social_repository');
 const utils = require('../utils/utils');
+const { validationResult } = require('express-validator');
 
-module.exports.loginNormal = async (email, password, fcmToken) => {
+module.exports.loginNormal = async (request) => {
     try {
-        const hashPass = utils.hashPassword(password);
-        const user = await authRepository.login(email, hashPass, fcmToken);
+        const errors = validationResult(request);
+        if(!errors.isEmpty()) throw Error(errors.array()[0].msg);
+
+        const body = request.body;  
+        const hashPass = utils.hashPassword(body.password);
+        const user = await authRepository.login(body.email, hashPass, body.fcmToken);
         return new NetworkResponse(
             1,
             null,
@@ -32,11 +37,15 @@ module.exports.loginNormal = async (email, password, fcmToken) => {
     }
 };
 
-module.exports.register = async (name, email, password, type, fcmToken) => {
+module.exports.register = async (request) => {
     try{
+        const errors = validationResult(request);
+        if(!errors.isEmpty()) throw Error(errors.array()[0].msg);
+
+        const body = request.body;         
         let hassPass = null;
-        if(!password) hassPass = utils.hashPassword(password);
-        const data = await authRepository.register(name, email, password, type, fcmToken);
+        if(!body.password) hassPass = utils.hashPassword(body.password);
+        const data = await authRepository.register(body.name, body.email, body.password, 'normal', body.fcmToken);
         let response = new NetworkResponse(
             1,
             null,
@@ -62,10 +71,14 @@ module.exports.register = async (name, email, password, type, fcmToken) => {
     }
 }
 
-module.exports.loginSocial = async (socialToken, accountType, fcmToken) => {
+module.exports.loginSocial = async (request) => {
     try{
-        const socialUser = await socialRepository.loginSocial(socialToken, accountType);
-        const user = await authRepository.loginSocical(socialUser.name, socialUser.id.toString(), accountType, fcmToken);
+        const errors = validationResult(request);
+        if(!errors.isEmpty()) throw Error(errors.array()[0].msg);
+
+        const body = request.body;         
+        const socialUser = await socialRepository.loginSocial(body.socialToken, body.accountType);
+        const user = await authRepository.loginSocical(socialUser.name, socialUser.id.toString(), body.accountType, body.fcmToken);
         return new NetworkResponse(
             1,
             null,

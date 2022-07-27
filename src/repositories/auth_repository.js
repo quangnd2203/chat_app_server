@@ -18,7 +18,7 @@ module.exports.register = async (name, email, password, type, fcmToken) => {
     const accessToken = utils.generateJWT(email);
     const users = await sqlConnection.query('CALL `userRegister`(?,?,?,?,?,?, @message, @status)', [name, email, password, type, accessToken, fcmToken,]);
     const recordStatus = await sqlConnection.query('CALL `systemGetStatus`(@message, @status)');
-    if(!recordStatus || recordStatus[0].status == 0) throw Error(recordStatus[0].status || 'ivalid_user');
+    if(!recordStatus || recordStatus[0].status == 0) throw Error(recordStatus[0].message || 'ivalid_user');
     return users[0];
 }
 

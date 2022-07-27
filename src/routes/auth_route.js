@@ -2,23 +2,22 @@ const express = require('express');
 const authController = require('../controllers/auth_controller');
 const router = express.Router();
 const authorizeMiddleware = require('../middlewares/authorize_middleware');
+const authValidation = require('../validations/authentication_validation');
 
-router.post('/loginNormal', (request, response) => {
-    authController.loginNormal(request.body.email, request.body.password, request.body.fcmToken).then((value) => {
+router.post('/loginNormal', authValidation.loginValidate(), (request, response) => {
+    authController.loginNormal(request).then((value) => {
         response.send(value);
     })
 });
 
-router.post('/register', (request, response) => {
-    const body = request.body;
-    authController.register(body.name, body.email, body.password, 'normal', body.fcmToken).then((value) => {
+router.post('/register', authValidation.registerAccountValidate(), (request, response) => {
+    authController.register(request).then((value) => {
         response.send(value);
     })
 });
 
-router.post('/loginSocial', (request, response) => {
-    const body = request.body;
-    authController.loginSocial(body.socialToken, body.accountType).then((value) => {
+router.post('/loginSocial', authValidation.loginSocialValidate(), (request, response) => {
+    authController.loginSocial(request).then((value) => {
         response.send(value);
     });
 });
