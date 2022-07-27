@@ -7,6 +7,9 @@
 -- Server version: 10.4.21-MariaDB
 -- PHP Version: 7.4.29
 
+DROP DATABASE chat_app_db;
+CREATE DATABASE chat_app_db;
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
