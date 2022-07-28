@@ -2,9 +2,9 @@ const NetworkResponse = require('../models/network_response');
 const UserModel = require('../models/user_model');
 const userRepository = require('../repositories/user_repository');
 
-module.exports.getUser = async () => {
+module.exports.getUser = async (request) => {
     try {
-        const users = await userRepository.getUser();
+        const users = await userRepository.getUser(request.user.uid);
         return new NetworkResponse(
             status = 1,
             message = null,

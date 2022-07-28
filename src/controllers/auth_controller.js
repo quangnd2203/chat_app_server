@@ -8,9 +8,9 @@ const { validationResult } = require('express-validator');
 module.exports.loginNormal = async (request) => {
     try {
         const errors = validationResult(request);
-        if(!errors.isEmpty()) throw Error(errors.array()[0].msg);
+        if (!errors.isEmpty()) throw Error(errors.array()[0].msg);
 
-        const body = request.body;  
+        const body = request.body;
         const hashPass = utils.hashPassword(body.password);
         const user = await authRepository.login(body.email, hashPass, body.fcmToken);
         return new NetworkResponse(
@@ -38,14 +38,14 @@ module.exports.loginNormal = async (request) => {
 };
 
 module.exports.register = async (request) => {
-    try{
+    try {
         const errors = validationResult(request);
-        if(!errors.isEmpty()) throw Error(errors.array()[0].msg);
+        if (!errors.isEmpty()) throw Error(errors.array()[0].msg);
 
-        const body = request.body;         
+        const body = request.body;
         let hassPass = null;
-        if(!body.password) hassPass = utils.hashPassword(body.password);
-        const user = await authRepository.register(body.name, body.email, body.password, 'normal', body.fcmToken);
+        if (body.password != null) hassPass = utils.hashPassword(body.password);
+        const user = await authRepository.register(body.name, body.email, hassPass, 'normal', body.fcmToken);
         let response = new NetworkResponse(
             1,
             null,
@@ -72,11 +72,11 @@ module.exports.register = async (request) => {
 }
 
 module.exports.loginSocial = async (request) => {
-    try{
+    try {
         const errors = validationResult(request);
-        if(!errors.isEmpty()) throw Error(errors.array()[0].msg);
+        if (!errors.isEmpty()) throw Error(errors.array()[0].msg);
 
-        const body = request.body;         
+        const body = request.body;
         const socialUser = await socialRepository.loginSocial(body.socialToken, body.accountType);
         const user = await authRepository.loginSocical(socialUser.name, socialUser.id.toString(), body.accountType, body.fcmToken);
         return new NetworkResponse(
