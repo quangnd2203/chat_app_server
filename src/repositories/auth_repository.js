@@ -3,12 +3,12 @@ const utils = require('../utils/utils');
 
 module.exports.login = async (email, password, fcmToken, accountType = 'normal') => {
     const accessToken = utils.generateJWT(email);
-    const users = await sqlConnection.query('CALL `userLogin`(?,?,?,?,?);', [email, password, accountType ,accessToken, fcmToken]);
+    const users = await sqlConnection.query('CALL `userLogin`(?,?,?,?,?);', [email, password, accountType , accessToken, fcmToken]);
     if((users?.length || 0) == 0) throw Error('ivalid_user'); 
     return users[0];
 }
 
-module.exports.authorize = async (email, token) => {
+module.exports.authorized = async (email, token) => {
     const users = await sqlConnection.query('CALL `userAuthorize`(?,?);', [email, token]);
     if((users?.length || 0) == 0) throw Error('ivalid_user'); 
     return users[0];

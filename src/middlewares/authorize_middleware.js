@@ -6,7 +6,7 @@ module.exports = async (request, response, next) => {
     try{
         const token = request.header('Authorization').replace('Bearer ', '');
         const payload = jwt.verify(token, process.env.JWT_KEY);
-        const user = await authRepository.authorize(payload.data, token);
+        const user = await authRepository.authorized(payload.data, token);
         if(!user){
             throw new Error();
         }

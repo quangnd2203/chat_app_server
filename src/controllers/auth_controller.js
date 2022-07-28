@@ -45,23 +45,23 @@ module.exports.register = async (request) => {
         const body = request.body;         
         let hassPass = null;
         if(!body.password) hassPass = utils.hashPassword(body.password);
-        const data = await authRepository.register(body.name, body.email, body.password, 'normal', body.fcmToken);
+        const user = await authRepository.register(body.name, body.email, body.password, 'normal', body.fcmToken);
         let response = new NetworkResponse(
             1,
             null,
             {
                 user: new UserModel(
-                    data.user.id,
-                    data.user.uid,
-                    data.user.name,
-                    data.user.email,
-                    data.user.accountType,
-                    data.user.avatar,
-                    data.user.background,
-                    data.user.created_at,
-                    data.user.updated_at,
+                    user.id,
+                    user.uid,
+                    user.name,
+                    user.email,
+                    user.accountType,
+                    user.avatar,
+                    user.background,
+                    user.created_at,
+                    user.updated_at,
                 ),
-                accessToken: data.user.accessToken,
+                accessToken: user.accessToken,
             }
         );
         return response;
