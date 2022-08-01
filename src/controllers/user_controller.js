@@ -4,7 +4,7 @@ const userRepository = require('../repositories/user_repository');
 
 module.exports.getUser = async (request) => {
     try {
-        const users = await userRepository.getUser(request.user.uid);
+        const users = await userRepository.getUser(request);
         return new NetworkResponse(
             status = 1,
             message = null,
