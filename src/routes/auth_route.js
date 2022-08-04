@@ -1,7 +1,7 @@
 const express = require('express');
 const authController = require('../controllers/auth_controller');
 const router = express.Router();
-const authorizeMiddleware = require('../middlewares/authorize_middleware');
+const {authorizedServer} = require('../middlewares/authorize_middleware');
 const authValidation = require('../validations/authentication_validation');
 
 router.post('/loginNormal', authValidation.loginValidate(), (request, response) => {
@@ -22,7 +22,7 @@ router.post('/loginSocial', authValidation.loginSocialValidate(), (request, resp
     });
 });
 
-router.get('/authorized', authorizeMiddleware, (request, response) => {
+router.get('/authorized', authorizedServer, (request, response) => {
     authController.authorized(request.user, request.token).then((value) => {
         response.send(value);
     });
