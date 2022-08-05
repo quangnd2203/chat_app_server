@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const authRepository = require('../repositories/auth_repository');
 const NetworkResponse = require('../models/network_response');
+const UserModel = require('../models/user_model');
 
 module.exports.authorizedServer = async (request, response, next) => {
     try{
@@ -10,7 +11,17 @@ module.exports.authorizedServer = async (request, response, next) => {
         if(!user){
             throw new Error();
         }
-        request.user = user;
+        request.user = new UserModel(
+            user.id,
+            user.uid,
+            user.name,
+            user.email,
+            user.accountType,
+            user.avatar,
+            user.background,
+            user.created_at,
+            user.updated_at,
+        );
         request.token = token;
         next();
     }catch(error){
@@ -26,7 +37,17 @@ module.exports.authorizeSocket = async (socket, next) => {
         if(!user){
             throw new Error();
         }
-        socket.user = user;
+        socket.user = new UserModel(
+            user.id,
+            user.uid,
+            user.name,
+            user.email,
+            user.accountType,
+            user.avatar,
+            user.background,
+            user.created_at,
+            user.updated_at,
+        );
         socket.token = token;
         next();
     }catch(error){

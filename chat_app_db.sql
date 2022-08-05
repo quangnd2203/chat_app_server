@@ -6,7 +6,7 @@ CREATE DATABASE chat_app_db;
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 03, 2022 at 11:21 AM
+-- Generation Time: Aug 05, 2022 at 11:31 AM
 -- Server version: 10.4.21-MariaDB
 -- PHP Version: 7.4.29
 
@@ -28,57 +28,21 @@ DELIMITER $$
 --
 -- Procedures
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationCreate` (IN `pUid` TEXT, IN `pPartnerUid` TEXT, OUT `pMessage` TEXT, OUT `pStatus` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationCreate` (IN `pUid` TEXT, IN `pPartnerUid` TEXT)   BEGIN
 	DECLARE `pConversationId` INT;
-    SET pStatus = 0;
-   	SET @count = (SELECT COUNT(*) FROM (
-        SELECT * FROM `UserConversation`
-        GROUP BY `UserConversation`.`uid`
-        HAVING `UserConversation`.`uid` IN (`pUid`, `pPartnerUid`)) AS Z);
+   	SET @json = (SELECT `getConversationIdByUids`(`pUid`, `pPartnerUid`));
+    SET @count = (SELECT JSON_EXTRACT(@json, "$.count"));
     IF(@count > 1) THEN BEGIN
-    	SET pStatus = 0;
-        SET pMessage = 'conversation_exits';
+    	SET `pConversationId` = (SELECT JSON_EXTRACT(@json, "$.conversationId"));
     END;
     ELSE BEGIN
     	INSERT INTO `Conversation` VALUES();
         SET `pConversationId` = LAST_INSERT_ID();
         INSERT INTO `UserConversation` (`uid`, `conversationId`)
             VALUES (`pUid`, `pConversationId`), (`pPartnerUid`, `pConversationId`);
-
-		SELECT `Conversation`.`id`, (
-    SELECT CONCAT(
-        "[", GROUP_CONCAT(JSON_OBJECT(
-            "id",`User`.`id`,
-            "uid", `User`.`uid`,
-            "name", `User`.`name`,
-            "email", `User`.`email`,
-           	"accountType", `User`.`accountType`,
-            "avatar", `User`.`avatar`,
-            "background", `User`.`background`,
-            "created_at", `User`.`created_at`,
-            "updated_at", `User`.`updated_at`
-        ) SEPARATOR ',') ,"]"
-    ) 
-    FROM `User` INNER JOIN `UserConversation` 
-    ON `UserConversation`.`uid` = `User`.`uid` AND `UserConversation`.`conversationId` = `Conversation`.`id`
-    ) as `users`, 
-    (
-        SELECT JSON_OBJECT(
-            "id", `Message`.`id`,
-            "conversationId", `Message`.`conversationId`,
-            "uid", `Message`.`uid`,
-            "text", `Message`.`text`,
-            "media", `Message`.`media`,
-            "created_at", `Message`.`created_at`,
-            "updated_at", `Message`.`updated_at`
-        ) 
-        FROM `Message` WHERE `Message`.`id` = `Conversation`.`lastMessageId`
-    ) as `lastMesssage`,
-    `Conversation`.`created_at`, `Conversation`.`updated_at`
-    FROM `Conversation` WHERE `Conversation`.`id` = `pConversationId`;
-    SET pStatus = 1;
     END;
     END IF;
+    CALL `conversationGetById`(`pConversationId`);
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetAll` (IN `pUid` TEXT)   SELECT `Conversation`.`id`, (
@@ -145,38 +109,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetById` (IN `pConversa
 `Conversation`.`created_at`, `Conversation`.`updated_at`
 FROM `Conversation` WHERE `Conversation`.`id` = `pConversationId`$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetByUid` (IN `pUid` TEXT, IN `pPartnerUid` TEXT)   SELECT `Conversation`.`id`, (
-    SELECT CONCAT(
-        "[", GROUP_CONCAT(JSON_OBJECT(
-            "id",`User`.`id`,
-            "uid", `User`.`uid`,
-            "name", `User`.`name`,
-            "email", `User`.`email`,
-           	"accountType", `User`.`accountType`,
-            "avatar", `User`.`avatar`,
-            "background", `User`.`background`,
-            "created_at", `User`.`created_at`,
-            "updated_at", `User`.`updated_at`
-        ) SEPARATOR ',') ,"]"
-    ) 
-    FROM `User` INNER JOIN `UserConversation` 
-    ON `UserConversation`.`uid` = `User`.`uid` AND `UserConversation`.`conversationId` = `Conversation`.`id`
-) as `users`, 
-(
-    SELECT JSON_OBJECT(
-        "id", `Message`.`id`,
-        "conversationId", `Message`.`conversationId`,
-        "uid", `Message`.`uid`,
-        "text", `Message`.`text`,
-        "media", `Message`.`media`,
-        "created_at", `Message`.`created_at`,
-        "updated_at", `Message`.`updated_at`
-    ) 
-    FROM `Message` WHERE `Message`.`id` = `Conversation`.`lastMessageId`
-) as `lastMesssage`,
-`Conversation`.`created_at`, `Conversation`.`updated_at`
-FROM `Conversation` INNER JOIN `UserConversation` WHERE `UserConversation`.uid IN (`pUid`, `pPartnerUid`) GROUP BY `UserConversation`.`conversationId` LIMIT 1$$
-
 CREATE DEFINER=`root`@`localhost` PROCEDURE `systemGetStatus` (IN `pMessage` VARCHAR(50), IN `pStatus` INT)   SELECT `pMessage` AS message, `pStatus` AS 'status'$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `userAuthorize` (IN `pEmail` VARCHAR(50), IN `pAccessToken` VARCHAR(500))   BEGIN
@@ -221,6 +153,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `userUpdateFcmToken` (IN `pUid` TEXT
     UPDATE `User` SET `fcmToken` = pFcmToken WHERE `uid` = pUid;
 END$$
 
+--
+-- Functions
+--
+CREATE DEFINER=`root`@`localhost` FUNCTION `getConversationIdByUids` (`pUid` TEXT, `pPartnerUid` TEXT) RETURNS LONGTEXT CHARSET utf8mb4  BEGIN 
+SELECT `conversationId` INTO @conversationId FROM `UserConversation`
+	GROUP BY `UserConversation`.`uid` HAVING `UserConversation`.`uid` IN (`pUid`, `pPartnerUid`) LIMIT 1;
+SET @count = (SELECT COUNT(*) FROM (
+	SELECT * FROM `UserConversation`
+    GROUP BY `UserConversation`.`uid`
+    HAVING `UserConversation`.`uid` IN (`pUid`, `pPartnerUid`)) AS Z);
+    RETURN JSON_OBJECT("conversationId", @conversationId, "count", @count);
+END$$
+
 DELIMITER ;
 
 -- --------------------------------------------------------
@@ -241,7 +186,15 @@ CREATE TABLE `Conversation` (
 --
 
 INSERT INTO `Conversation` (`id`, `lastMessageId`, `created_at`, `updated_at`) VALUES
-(43, NULL, '2022-08-03 08:37:36', NULL);
+(43, NULL, '2022-08-03 08:37:36', NULL),
+(44, NULL, '2022-08-05 02:30:55', NULL),
+(45, NULL, '2022-08-05 07:31:52', NULL),
+(46, NULL, '2022-08-05 07:34:15', NULL),
+(47, NULL, '2022-08-05 07:37:50', NULL),
+(48, NULL, '2022-08-05 07:38:09', NULL),
+(49, NULL, '2022-08-05 07:44:54', NULL),
+(50, NULL, '2022-08-05 07:49:14', NULL),
+(51, NULL, '2022-08-05 07:49:38', NULL);
 
 -- --------------------------------------------------------
 
@@ -336,7 +289,7 @@ INSERT INTO `User` (`id`, `uid`, `name`, `email`, `accountType`, `password`, `av
 (484, 'uid-41fab574-0f0f-11ed-903b-c6ef0857e0cf', 'Juanita Lopez', 'juanita.lopez.42037462@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoianVhbml0YS5sb3Blei40MjAzNzQ2MkBnbWFpbC5jb20iLCJpYXQiOjE2NTkwNzkzNzIsImV4cCI6MTY5MDYxNTM3Mn0.MBA64yBYUQTU0oE30_dNEj_gTfpqS_VC6eodPatIK3ZkgRsIhvxsnRB-SZ54qhdmzvlnP7Zfc0iOiN__hPuAog', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
 (485, 'uid-41fac7da-0f0f-11ed-903b-c6ef0857e0cf', 'Audrey Sims', 'audrey.sims.82613616@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiYXVkcmV5LnNpbXMuODI2MTM2MTZAZ21haWwuY29tIiwiaWF0IjoxNjU5MDc5MzcyLCJleHAiOjE2OTA2MTUzNzJ9.U2KG42B1OW9DPfCkhNNf10uRnPbuWWzoqKE3-zjjesdHpyCmlrfGzIBst9QHD3a70GsIFr6Nnf-iTqULO8-45w', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
 (486, 'uid-41fadad6-0f0f-11ed-903b-c6ef0857e0cf', 'Sherry Warren', 'sherry.warren.63619010@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoic2hlcnJ5LndhcnJlbi42MzYxOTAxMEBnbWFpbC5jb20iLCJpYXQiOjE2NTkwNzkzNzIsImV4cCI6MTY5MDYxNTM3Mn0.ZVYy67UM_TRlGM2VreMYndFMDO5fXWrfciU6b3rVs161iPj5oRqslfYpw7jpTVU-ndo9wyFPPBa1e3vRTVbbAg', 'flEBJM_xRGGM9-0s8PGDkC:APA91bGWRtCQF51I_dOHp3mWqbJFDruVK0p5wO-LUdkZm-jh5vvWa1SZCWMyG6dQn0S083XS5yDsSx4bEAEW1AMKaj7DUrYAjkabcxEIBHva9C3ZKNKkbmq2ubYAh2gYNMijTEdERBt1', '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
-(436, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'Nguyen Dang Quang', 'quangnd.nta@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjU5NTE0OTk0LCJleHAiOjE2OTEwNTA5OTR9.95DZzBevMi74Mka6G9-oWF-ton53wVTZTjEq4Lj7hopzCSkCG14s-1UxIeY6n_cBRUEyCoDU0Vd47AJE1JwwKQ', 'ssdsd', '2022-07-29 07:11:41', '2022-08-03 15:23:14');
+(436, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'Nguyen Dang Quang', 'quangnd.nta@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjU5NTk3ODM1LCJleHAiOjE2OTExMzM4MzV9.ZaywQUf5i5DFMCuVYJsw24X5tqyOYPwT_UPaBucHfsRTdKo-ynUKdczBzSKR20tgD3onBDaG3o2aoTRPP44VBw', 'ssss', '2022-07-29 07:11:41', '2022-08-04 14:23:55');
 
 -- --------------------------------------------------------
 
@@ -357,8 +310,16 @@ CREATE TABLE `UserConversation` (
 --
 
 INSERT INTO `UserConversation` (`id`, `uid`, `conversationId`, `created_at`, `updated_at`) VALUES
-(77, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 43, '2022-08-03 08:37:36', NULL),
-(78, 'uid-41ef215a-0f0f-11ed-903b-c6ef0857e0cf', 43, '2022-08-03 08:37:36', NULL);
+(81, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 46, '2022-08-05 07:34:15', NULL),
+(82, 'uid-41f6829c-0f0f-11ed-903b-c6ef0857e0cf', 46, '2022-08-05 07:34:15', NULL),
+(83, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 47, '2022-08-05 07:37:50', NULL),
+(84, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 47, '2022-08-05 07:37:50', NULL),
+(85, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 48, '2022-08-05 07:38:09', NULL),
+(86, 'uid-41f5f9f8-0f0f-11ed-903b-c6ef0857e0cf', 48, '2022-08-05 07:38:09', NULL),
+(87, 'uid-41f6829c-0f0f-11ed-903b-c6ef0857e0cf', 49, '2022-08-05 07:44:54', NULL),
+(88, 'uid-41f25f6e-0f0f-11ed-903b-c6ef0857e0cf', 49, '2022-08-05 07:44:54', NULL),
+(91, 'uid-41f6cdd8-0f0f-11ed-903b-c6ef0857e0cf', 51, '2022-08-05 07:49:38', NULL),
+(92, 'uid-41f6829c-0f0f-11ed-903b-c6ef0857e0cf', 51, '2022-08-05 07:49:38', NULL);
 
 --
 -- Indexes for dumped tables
@@ -403,7 +364,7 @@ ALTER TABLE `UserConversation`
 -- AUTO_INCREMENT for table `Conversation`
 --
 ALTER TABLE `Conversation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `Message`
@@ -421,7 +382,7 @@ ALTER TABLE `User`
 -- AUTO_INCREMENT for table `UserConversation`
 --
 ALTER TABLE `UserConversation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
 -- Constraints for dumped tables

@@ -4,13 +4,9 @@ const UserModel = require('../models/user_model');
 const NetworkResponse = require('../models/network_response');
 const { validationResult } = require('express-validator');
 
-module.exports.createConversation = async (request) => {
+module.exports.createConversation = async (uid, partnerUid) => {
     try{
-        const errors = validationResult(request);
-        if (!errors.isEmpty()) throw Error(errors.array()[0].msg);
-
-        const body = request.body;
-        const data = await conversationRepository.getConversation(request.user.uid, body.partnerUid);
+        const data = await conversationRepository.createConversation(uid, partnerUid);
         return new NetworkResponse(
             1,
             null,

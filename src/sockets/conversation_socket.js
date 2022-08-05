@@ -1,5 +1,5 @@
 const {Server, Socket} = require("socket.io");
-var socket;
+const conversationController = require('../controllers/conversation_controller');
 
 /**
  * 
@@ -7,17 +7,33 @@ var socket;
  * @param {Socket} socket 
  */
 
-
-module.exports = (io, s) => {
-    socket = s;
-    socket.on('createConversation', (data) => createConversation(data));
+module.exports = (io, socket) => {
+    var helper = new Helper(io, socket);
+    socket.on('createConversation', helper.onCreateConversation);
+    socket.on('leaveRoom', helper.onLeaveRoom);
+    socket.on('message', helper.onMessage)
 }
 
-/** 
- * @param {Socket} socket
-*/ 
+/**
+ * 
+ * @param {Server} io 
+ * @param {Socket} socket 
+ */
 
-createConversation = (data) => {
-    // console.log(data);
-    // socket.disconnect(true);
+function Helper (io, socket){
+
+    this.onCreateConversation = async(data) => {
+        const conversation = await conversationController.createConversation(socket.user.uid, data.uid);
+        socket.emit('createConversation', conversation);
+        socket.join(`conversation_${conversation.data.id}`);
+    };
+
+    this.onLeaveRoom = (data) => {
+        socket.leave(`conversation_${data.conversationId}`);
+        socket.emit('leaveRoom', true);
+    }
+
+    this.onMessage = (data) => {
+        io.to(`conversation_${data.conversationId}`).emit('message', data.message);
+    }
 }
