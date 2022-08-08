@@ -1,4 +1,5 @@
 const NetworkResponse = require('../models/network_response');
+const UserModel = require('../models/user_model');
 const authRepository = require('../repositories/auth_repository');
 const socialRepository = require('../repositories/social_repository');
 const utils = require('../utils/utils');
@@ -8,7 +9,7 @@ module.exports.loginNormal = async (request) => {
     try {
         const errors = validationResult(request);
         if (!errors.isEmpty()) throw Error(errors.array()[0].msg);
-        
+
         const body = request.body;
         const hashPass = utils.hashPassword(body.password);
         const networkResponse = await authRepository.login(body.email, hashPass, body.fcmToken);

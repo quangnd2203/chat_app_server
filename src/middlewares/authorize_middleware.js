@@ -7,21 +7,11 @@ module.exports.authorizedServer = async (request, response, next) => {
     try{
         const token = request.header('Authorization').replace('Bearer ', '');
         const payload = jwt.verify(token, process.env.JWT_KEY);
-        const user = await authRepository.authorized(payload.data, token);
-        if(!user){
+        const networkResponse = await authRepository.authorized(payload.data, token);
+        if(networkResponse.status == 0){
             throw new Error();
         }
-        request.user = new UserModel(
-            user.id,
-            user.uid,
-            user.name,
-            user.email,
-            user.accountType,
-            user.avatar,
-            user.background,
-            user.created_at,
-            user.updated_at,
-        );
+        request.user = networkResponse.data.user;
         request.token = token;
         next();
     }catch(error){
@@ -33,21 +23,11 @@ module.exports.authorizeSocket = async (socket, next) => {
     try{
         const token = socket.handshake.headers.authorization.replace('Bearer ', '');
         const payload = jwt.verify(token, process.env.JWT_KEY);
-        const user = await authRepository.authorized(payload.data, token);
-        if(!user){
+        const networkResponse = await authRepository.authorized(payload.data, token);
+        if(networkResponse.status == 0){
             throw new Error();
         }
-        socket.user = new UserModel(
-            user.id,
-            user.uid,
-            user.name,
-            user.email,
-            user.accountType,
-            user.avatar,
-            user.background,
-            user.created_at,
-            user.updated_at,
-        );
+        socket.user = networkResponse.data.user;
         socket.token = token;
         next();
     }catch(error){

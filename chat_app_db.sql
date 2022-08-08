@@ -6,7 +6,7 @@ CREATE DATABASE chat_app_db;
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 05, 2022 at 11:31 AM
+-- Generation Time: Aug 08, 2022 at 11:48 AM
 -- Server version: 10.4.21-MariaDB
 -- PHP Version: 7.4.29
 
@@ -109,6 +109,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetById` (IN `pConversa
 `Conversation`.`created_at`, `Conversation`.`updated_at`
 FROM `Conversation` WHERE `Conversation`.`id` = `pConversationId`$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `messageCreate` (IN `pConversationId` INT, IN `pUid` TEXT, IN `pText` TEXT, IN `pMedia` TEXT)   BEGIN
+	INSERT INTO `Message` (`conversationId`, `uid`, `text`, `media`) VALUES (`pConversationId`, `pUid`, `pText`, `pMedia`);
+    SELECT * FROM `Message` WHERE `id` = LAST_INSERT_ID();
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `systemGetStatus` (IN `pMessage` VARCHAR(50), IN `pStatus` INT)   SELECT `pMessage` AS message, `pStatus` AS 'status'$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `userAuthorize` (IN `pEmail` VARCHAR(50), IN `pAccessToken` VARCHAR(500))   BEGIN
@@ -181,21 +186,6 @@ CREATE TABLE `Conversation` (
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
---
--- Dumping data for table `Conversation`
---
-
-INSERT INTO `Conversation` (`id`, `lastMessageId`, `created_at`, `updated_at`) VALUES
-(43, NULL, '2022-08-03 08:37:36', NULL),
-(44, NULL, '2022-08-05 02:30:55', NULL),
-(45, NULL, '2022-08-05 07:31:52', NULL),
-(46, NULL, '2022-08-05 07:34:15', NULL),
-(47, NULL, '2022-08-05 07:37:50', NULL),
-(48, NULL, '2022-08-05 07:38:09', NULL),
-(49, NULL, '2022-08-05 07:44:54', NULL),
-(50, NULL, '2022-08-05 07:49:14', NULL),
-(51, NULL, '2022-08-05 07:49:38', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -212,6 +202,14 @@ CREATE TABLE `Message` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Triggers `Message`
+--
+DELIMITER $$
+CREATE TRIGGER `messageUpdateLatest` AFTER INSERT ON `Message` FOR EACH ROW UPDATE `Conversation` SET `Conversation`.`lastMessageId` = NEW.id WHERE `Conversation`.id = NEW.`conversationId`
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -239,6 +237,7 @@ CREATE TABLE `User` (
 --
 
 INSERT INTO `User` (`id`, `uid`, `name`, `email`, `accountType`, `password`, `avatar`, `background`, `accessToken`, `fcmToken`, `created_at`, `updated_at`) VALUES
+(487, 'uid-23990c54-16fb-11ed-bdc5-c6ef0857e0ce', 'quassssng', 'quangtesst@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmd0ZXNzdEBnbWFpbC5jb20iLCJpYXQiOjE2NTk5NTAzNDAsImV4cCI6MTY5MTQ4NjM0MH0.tjTpPShGB2ydh3L3F7HHoC3bzK4i3SLKndSKr0tL4JDH_IobJjoDFYf5VXNwlq0uH0DZ61uz75kigfsFRYgM7g', 'sss', '2022-08-08 09:19:00', '2022-08-08 16:19:00'),
 (437, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'Kathleen Mitchell', 'kathleen.mitchell.54195562@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoia2F0aGxlZW4ubWl0Y2hlbGwuNTQxOTU1NjJAZ21haWwuY29tIiwiaWF0IjoxNjU5MDc5MzcyLCJleHAiOjE2OTA2MTUzNzJ9.mCXsD0YkmErrnBwIv6zwcbDSl3RkUu38PSC_18DOkmWGFsYzLNF44CywQ_bbpFwzo_4OOAyOzSsKiNr2uqC2Ow', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
 (438, 'uid-41ef215a-0f0f-11ed-903b-c6ef0857e0cf', 'Denise Buchanan', 'denise.buchanan.40861892@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZGVuaXNlLmJ1Y2hhbmFuLjQwODYxODkyQGdtYWlsLmNvbSIsImlhdCI6MTY1OTA3OTM3MiwiZXhwIjoxNjkwNjE1MzcyfQ.R4fsk1TTYQ5B5GrVdLFISYFCm0lcLC74vfW3rdJOSKsAPj105HFrxDouE1DfhImNQ3odCDM7_i1p7-TE0v-5jw', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
 (439, 'uid-41f25f6e-0f0f-11ed-903b-c6ef0857e0cf', 'Carolyn Sumrall', 'carolyn.sumrall.9456285@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiY2Fyb2x5bi5zdW1yYWxsLjk0NTYyODVAZ21haWwuY29tIiwiaWF0IjoxNjU5MDc5MzcyLCJleHAiOjE2OTA2MTUzNzJ9.tTWlOfmdOlu_BnxB-LsmnUoC9lEj4284ojKUXgSu4J0y34DZ-EYFamSRHkoQRZaTffaLw5gkFl7gbWDvQgekRg', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
@@ -289,7 +288,7 @@ INSERT INTO `User` (`id`, `uid`, `name`, `email`, `accountType`, `password`, `av
 (484, 'uid-41fab574-0f0f-11ed-903b-c6ef0857e0cf', 'Juanita Lopez', 'juanita.lopez.42037462@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoianVhbml0YS5sb3Blei40MjAzNzQ2MkBnbWFpbC5jb20iLCJpYXQiOjE2NTkwNzkzNzIsImV4cCI6MTY5MDYxNTM3Mn0.MBA64yBYUQTU0oE30_dNEj_gTfpqS_VC6eodPatIK3ZkgRsIhvxsnRB-SZ54qhdmzvlnP7Zfc0iOiN__hPuAog', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
 (485, 'uid-41fac7da-0f0f-11ed-903b-c6ef0857e0cf', 'Audrey Sims', 'audrey.sims.82613616@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiYXVkcmV5LnNpbXMuODI2MTM2MTZAZ21haWwuY29tIiwiaWF0IjoxNjU5MDc5MzcyLCJleHAiOjE2OTA2MTUzNzJ9.U2KG42B1OW9DPfCkhNNf10uRnPbuWWzoqKE3-zjjesdHpyCmlrfGzIBst9QHD3a70GsIFr6Nnf-iTqULO8-45w', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
 (486, 'uid-41fadad6-0f0f-11ed-903b-c6ef0857e0cf', 'Sherry Warren', 'sherry.warren.63619010@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoic2hlcnJ5LndhcnJlbi42MzYxOTAxMEBnbWFpbC5jb20iLCJpYXQiOjE2NTkwNzkzNzIsImV4cCI6MTY5MDYxNTM3Mn0.ZVYy67UM_TRlGM2VreMYndFMDO5fXWrfciU6b3rVs161iPj5oRqslfYpw7jpTVU-ndo9wyFPPBa1e3vRTVbbAg', 'flEBJM_xRGGM9-0s8PGDkC:APA91bGWRtCQF51I_dOHp3mWqbJFDruVK0p5wO-LUdkZm-jh5vvWa1SZCWMyG6dQn0S083XS5yDsSx4bEAEW1AMKaj7DUrYAjkabcxEIBHva9C3ZKNKkbmq2ubYAh2gYNMijTEdERBt1', '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
-(436, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'Nguyen Dang Quang', 'quangnd.nta@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjU5NTk3ODM1LCJleHAiOjE2OTExMzM4MzV9.ZaywQUf5i5DFMCuVYJsw24X5tqyOYPwT_UPaBucHfsRTdKo-ynUKdczBzSKR20tgD3onBDaG3o2aoTRPP44VBw', 'ssss', '2022-07-29 07:11:41', '2022-08-04 14:23:55');
+(436, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'Nguyen Dang Quang', 'quangnd.nta@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjU5OTQ4MzI0LCJleHAiOjE2OTE0ODQzMjR9.FnZy_kZ-uFAgw_Og5AkVP4pfaXnxJLWhVlbd70l67tvqwY6B_bIygGTH5XoV6g_V4xvKIzuhu0dws4WIaeNDgw', 'AAAA', '2022-07-29 07:11:41', '2022-08-08 15:45:24');
 
 -- --------------------------------------------------------
 
@@ -304,22 +303,6 @@ CREATE TABLE `UserConversation` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `UserConversation`
---
-
-INSERT INTO `UserConversation` (`id`, `uid`, `conversationId`, `created_at`, `updated_at`) VALUES
-(81, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 46, '2022-08-05 07:34:15', NULL),
-(82, 'uid-41f6829c-0f0f-11ed-903b-c6ef0857e0cf', 46, '2022-08-05 07:34:15', NULL),
-(83, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 47, '2022-08-05 07:37:50', NULL),
-(84, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 47, '2022-08-05 07:37:50', NULL),
-(85, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 48, '2022-08-05 07:38:09', NULL),
-(86, 'uid-41f5f9f8-0f0f-11ed-903b-c6ef0857e0cf', 48, '2022-08-05 07:38:09', NULL),
-(87, 'uid-41f6829c-0f0f-11ed-903b-c6ef0857e0cf', 49, '2022-08-05 07:44:54', NULL),
-(88, 'uid-41f25f6e-0f0f-11ed-903b-c6ef0857e0cf', 49, '2022-08-05 07:44:54', NULL),
-(91, 'uid-41f6cdd8-0f0f-11ed-903b-c6ef0857e0cf', 51, '2022-08-05 07:49:38', NULL),
-(92, 'uid-41f6829c-0f0f-11ed-903b-c6ef0857e0cf', 51, '2022-08-05 07:49:38', NULL);
 
 --
 -- Indexes for dumped tables
@@ -364,19 +347,19 @@ ALTER TABLE `UserConversation`
 -- AUTO_INCREMENT for table `Conversation`
 --
 ALTER TABLE `Conversation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `Message`
 --
 ALTER TABLE `Message`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `User`
 --
 ALTER TABLE `User`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=487;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=488;
 
 --
 -- AUTO_INCREMENT for table `UserConversation`
