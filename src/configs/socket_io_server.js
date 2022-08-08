@@ -9,13 +9,10 @@ const io = new Server({
 
 const onConnection = (socket) => {
     require('../sockets/conversation_socket')(io, socket);
+    require('../sockets/base_socket')(io, socket);
 }
 
 io.on('connection', (socket) => {
-    console.log(`Connected ${socket.id}`);
-    socket.on('disconnect', () => {
-        console.log(`Disconnected ${socket.id}`);
-    });
     onConnection(socket);
 });
 

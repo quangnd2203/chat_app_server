@@ -8,9 +8,8 @@ const conversationController = require('../controllers/conversation_controller')
  */
 
 module.exports = (io, socket) => {
-    var helper = new Helper(io, socket);
+    const helper = new Helper(io, socket);
     socket.on('createConversation', helper.onCreateConversation);
-    socket.on('leaveRoom', helper.onLeaveRoom);
     socket.on('message', helper.onMessage)
 }
 
@@ -25,15 +24,10 @@ function Helper (io, socket){
     this.onCreateConversation = async(data) => {
         const conversation = await conversationController.createConversation(socket.user.uid, data.uid);
         socket.emit('createConversation', conversation);
-        socket.join(`conversation_${conversation.data.id}`);
     };
 
-    this.onLeaveRoom = (data) => {
-        socket.leave(`conversation_${data.conversationId}`);
-        socket.emit('leaveRoom', true);
-    }
-
-    this.onMessage = (data) => {
-        io.to(`conversation_${data.conversationId}`).emit('message', data.message);
+    this.onMessage = async(data) => {
+        io.to(`uid-${data.uid}`).emit('message', data.message);
+        io.to(`uid-${socket.user.uid}`).emit('message', data.message);
     }
 }
