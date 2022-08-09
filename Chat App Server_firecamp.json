@@ -1,6 +1,6 @@
 {
     "meta": {
-        "__export_time": 1659928424490,
+        "__export_time": 1660035759660,
         "__export_app": "firecamp_v2.6.1 ",
         "__export_version": 1
     },
@@ -122,7 +122,7 @@
                     "headers": [
                         {
                             "key": "Content-Type",
-                            "value": "application/x-www-form-urlencoded",
+                            "value": "application/json",
                             "type": "text",
                             "disable": false
                         }
@@ -150,33 +150,37 @@
                                         {
                                             "key": "name",
                                             "value": "",
-                                            "disable": false,
+                                            "disable": true,
                                             "type": "text"
                                         },
                                         {
                                             "key": "email",
                                             "value": "",
-                                            "disable": false,
+                                            "disable": true,
                                             "type": "text"
                                         },
                                         {
                                             "key": "password",
                                             "value": "",
-                                            "disable": false,
+                                            "disable": true,
                                             "type": "text"
                                         },
                                         {
                                             "key": "fcmToken",
                                             "value": "",
-                                            "disable": false,
+                                            "disable": true,
                                             "type": "text"
                                         }
                                     ],
                                     "headers": []
+                                },
+                                "application/json": {
+                                    "value": "{\n  \"email\" : \"\",\n  \"name\" : \"\",\n  \"password\":  \"\",\n  \"fcmToken\" : \"\"\n}",
+                                    "headers": []
                                 }
                             },
                             "meta": {
-                                "active_body_type": "application/x-www-form-urlencoded",
+                                "active_body_type": "application/json",
                                 "is_default": true
                             }
                         }
@@ -235,7 +239,7 @@
                             "name": "Default",
                             "body": {
                                 "application/json": {
-                                    "value": "{\n  \"socialToken\" : \"\",\n  \"accountType\": \"\"\n}",
+                                    "value": "{\n  \"socialToken\" : \"ssss\",\n  \"accountType\": \"google\"\n}",
                                     "headers": []
                                 }
                             },
@@ -310,7 +314,7 @@
     "requests": [
         {
             "meta": {
-                "name": "Chat App Socket IO",
+                "name": "Chat User1",
                 "description": "",
                 "type": "socketio",
                 "version": "2.0"
@@ -356,7 +360,7 @@
                     "headers": [
                         {
                             "key": "authorization",
-                            "value": "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjU5OTIxMzA0LCJleHAiOjE2OTE0NTczMDR9.2oR80zNACRBSyVjJ2-1VwyXN457Uc_CM1vzEnpjpJp1bQU_HYZEpepSi0sB5nx2lXQKIsIsgBZfP9mirrr1wCw",
+                            "value": "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjU5OTI4OTAyLCJleHAiOjE2OTE0NjQ5MDJ9.oxQIUSyk4trrFDWDNomO5RAFDyt7nzUr7dWnKOMvkbWmbKhJWYjoYLnJbh1PnTOI7gnyoWGfjveiObe55CjZ9A",
                             "disable": false,
                             "type": "text"
                         }
@@ -367,9 +371,9 @@
                 }
             ],
             "listeners": [
-                "createConversation",
-                "leaveRoom",
-                "message"
+                "onCreateConversation",
+                "error",
+                "onMessage"
             ],
             "emitter_collection": [
                 {
@@ -380,7 +384,7 @@
                                 "type": "json",
                                 "envelope": ""
                             },
-                            "payload": "{\n  \"uid\" : \"uid-41f6829c-0f0f-11ed-903b-c6ef0857e0cf\"\n}",
+                            "payload": "{\n  \"uid\" : \"uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf\"\n}",
                             "path": ""
                         }
                     ],
@@ -398,7 +402,7 @@
                                 "type": "json",
                                 "envelope": ""
                             },
-                            "payload": "{\n  \"conversationId\": 46,\n  \"message\" : \"aaaaa\"\n}"
+                            "payload": "{\n  \"conversationId\": 55,\n  \"text\" : \"aaaaa\",\n  \"media\": null\n}"
                         }
                     ],
                     "meta": {
@@ -406,20 +410,104 @@
                         "interval": "",
                         "ack": false
                     }
-                },
+                }
+            ]
+        },
+        {
+            "meta": {
+                "name": "Chat User2",
+                "description": "",
+                "type": "socketio",
+                "version": "2.0"
+            },
+            "url": {
+                "slashes": false,
+                "protocol": "",
+                "hash": "",
+                "pathname": "{{base_socket}}",
+                "auth": "",
+                "host": "",
+                "port": "",
+                "hostname": "",
+                "password": "",
+                "username": "",
+                "origin": "null",
+                "href": "{{base_socket}}",
+                "path_params": [],
+                "query_params": []
+            },
+            "config": {
+                "version": "v3",
+                "rejectUnauthorized": false,
+                "timeout": 20000,
+                "reconnection": false,
+                "reconnectionAttempts": 3,
+                "reconnectionDelay": 1000,
+                "reconnectionDelayMax": 5000,
+                "on_connect_listeners": []
+            },
+            "connections": [
                 {
-                    "name": "leaveRoom",
+                    "name": "Default",
+                    "forceNew": false,
+                    "namespace": "",
+                    "path": "",
+                    "ping": false,
+                    "ping_interval": 3000,
+                    "transports": {
+                        "websocket": true,
+                        "polling": true
+                    },
+                    "headers": [
+                        {
+                            "key": "authorization",
+                            "value": "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjU5OTI4OTAyLCJleHAiOjE2OTE0NjQ5MDJ9.oxQIUSyk4trrFDWDNomO5RAFDyt7nzUr7dWnKOMvkbWmbKhJWYjoYLnJbh1PnTOI7gnyoWGfjveiObe55CjZ9A",
+                            "disable": false,
+                            "type": "text"
+                        }
+                    ],
+                    "query_params": [],
+                    "auth": [],
+                    "is_default": true
+                }
+            ],
+            "listeners": [
+                "onCreateConversation",
+                "error",
+                "onMessage"
+            ],
+            "emitter_collection": [
+                {
+                    "name": "createConversation",
                     "body": [
                         {
                             "meta": {
                                 "type": "json",
                                 "envelope": ""
                             },
-                            "payload": "{\n  \"conversationId\": 46\n}"
+                            "payload": "{\n  \"uid\" : \"uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf\"\n}",
+                            "path": ""
                         }
                     ],
                     "meta": {
-                        "label": "leaveRoom",
+                        "label": "createConversation",
+                        "interval": "",
+                        "ack": false
+                    }
+                },
+                {
+                    "name": "message",
+                    "body": [
+                        {
+                            "meta": {
+                                "type": "json",
+                                "envelope": ""
+                            },
+                            "payload": "{\n  \"conversationId\": 55,\n  \"text\" : \"aaaaa\",\n  \"media\": null\n}"
+                        }
+                    ],
+                    "meta": {
+                        "label": "sendMessage",
                         "interval": "",
                         "ack": false
                     }

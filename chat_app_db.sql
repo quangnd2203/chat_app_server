@@ -6,7 +6,7 @@ CREATE DATABASE chat_app_db;
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 08, 2022 at 11:48 AM
+-- Generation Time: Aug 09, 2022 at 11:01 AM
 -- Server version: 10.4.21-MariaDB
 -- PHP Version: 7.4.29
 
@@ -55,25 +55,16 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetAll` (IN `pUid` TEXT
            	"accountType", `User`.`accountType`,
             "avatar", `User`.`avatar`,
             "background", `User`.`background`,
-            "created_at", `User`.`created_at`,
-            "updated_at", `User`.`updated_at`
+            "createdAt", `User`.`createdAt`,
+            "updatedAt", `User`.`updatedAt`
         ) SEPARATOR ',') ,"]"
     ) 
     FROM `User` INNER JOIN `UserConversation` 
     ON `UserConversation`.`uid` = `User`.`uid` AND `UserConversation`.`conversationId` = `Conversation`.`id`
 ) as `users`, 
 (
-    SELECT JSON_OBJECT(
-        "id", `Message`.`id`,
-        "conversationId", `Message`.`conversationId`,
-        "uid", `Message`.`uid`,
-        "text", `Message`.`text`,
-        "media", `Message`.`media`,
-        "created_at", `Message`.`created_at`,
-        "updated_at", `Message`.`updated_at`
-    ) 
-    FROM `Message` WHERE `Message`.`id` = `Conversation`.`lastMessageId`
-) as `lastMesssage`,
+	SELECT messageGetById(`Conversation`.`lastMessageId`)
+) as `lastMessage`,
 `Conversation`.`created_at`, `Conversation`.`updated_at`
 FROM `Conversation` INNER JOIN `UserConversation` ON `UserConversation`.`uid` = `pUid` GROUP BY `Conversation`.`id`$$
 
@@ -95,24 +86,39 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetById` (IN `pConversa
     ON `UserConversation`.`uid` = `User`.`uid` AND `UserConversation`.`conversationId` = `Conversation`.`id`
 ) as `users`, 
 (
-    SELECT JSON_OBJECT(
-        "id", `Message`.`id`,
-        "conversationId", `Message`.`conversationId`,
-        "uid", `Message`.`uid`,
-        "text", `Message`.`text`,
-        "media", `Message`.`media`,
-        "created_at", `Message`.`created_at`,
-        "updated_at", `Message`.`updated_at`
-    ) 
-    FROM `Message` WHERE `Message`.`id` = `Conversation`.`lastMessageId`
-) as `lastMesssage`,
+	SELECT messageGetById(`Conversation`.`lastMessageId`)
+) as `lastMessage`,
 `Conversation`.`created_at`, `Conversation`.`updated_at`
 FROM `Conversation` WHERE `Conversation`.`id` = `pConversationId`$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetUsers` (IN `pConversationId` INT)   SELECT * 
+    FROM `User` INNER JOIN `UserConversation` 
+    ON `UserConversation`.`uid` = `User`.`uid` AND `UserConversation`.`conversationId` = `pConversationId`$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `messageCreate` (IN `pConversationId` INT, IN `pUid` TEXT, IN `pText` TEXT, IN `pMedia` TEXT)   BEGIN
 	INSERT INTO `Message` (`conversationId`, `uid`, `text`, `media`) VALUES (`pConversationId`, `pUid`, `pText`, `pMedia`);
-    SELECT * FROM `Message` WHERE `id` = LAST_INSERT_ID();
+	CALL `messageGetById`(LAST_INSERT_ID());
 END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `messageGetById` (IN `pMessageId` INT)   SELECT 
+        `Message`.`id`, 
+        `Message`.`conversationId`, 
+        `Message`.`text`, 
+        `Message`.`media`,
+        `Message`.`createdAt`,
+        `Message`.`updatedAt`,
+        (SELECT JSON_OBJECT(
+            'id', `User`.`id`,
+            'uid', `User`.`uid`,
+            'name', `User`.`name`,
+            'email', `User`.`email`,
+            'accountType', `User`.`accountType`,
+            'avatar', `User`.`avatar`,
+            'background', `User`.`background`,
+            'createdAt',`User`.`createdAt`,
+            'updatedAt',`User`.`updatedAt`
+        ) FROM `User` WHERE `User`.uid = `Message`.uid) as `user`
+    	FROM `Message` WHERE `Message`.`id` = pMessageId$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `systemGetStatus` (IN `pMessage` VARCHAR(50), IN `pStatus` INT)   SELECT `pMessage` AS message, `pStatus` AS 'status'$$
 
@@ -161,7 +167,7 @@ END$$
 --
 -- Functions
 --
-CREATE DEFINER=`root`@`localhost` FUNCTION `getConversationIdByUids` (`pUid` TEXT, `pPartnerUid` TEXT) RETURNS LONGTEXT CHARSET utf8mb4  BEGIN 
+CREATE DEFINER=`root`@`localhost` FUNCTION `getConversationIdByUids` (`pUid` TEXT, `pPartnerUid` TEXT) RETURNS LONGTEXT CHARSET utf8mb4 COLLATE utf8mb4_bin  BEGIN
 SELECT `conversationId` INTO @conversationId FROM `UserConversation`
 	GROUP BY `UserConversation`.`uid` HAVING `UserConversation`.`uid` IN (`pUid`, `pPartnerUid`) LIMIT 1;
 SET @count = (SELECT COUNT(*) FROM (
@@ -169,6 +175,31 @@ SET @count = (SELECT COUNT(*) FROM (
     GROUP BY `UserConversation`.`uid`
     HAVING `UserConversation`.`uid` IN (`pUid`, `pPartnerUid`)) AS Z);
     RETURN JSON_OBJECT("conversationId", @conversationId, "count", @count);
+END$$
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `messageGetById` (`pMessageId` INT) RETURNS LONGTEXT CHARSET utf8mb4  BEGIN
+SET @json = (
+    SELECT JSON_OBJECT(
+        'id', `Message`.`id`,
+        'conversationId', `Message`.`conversationId`,
+        'text', `Message`.`text`,
+        'media', `Message`.`media`,
+        'user', (SELECT JSON_OBJECT(
+            'id', `User`.`id`,
+            'uid', `User`.`uid`,
+            'name', `User`.`name`,
+            'email', `User`.`email`,
+            'accountType', `User`.`accountType`,
+            'avatar', `User`.`avatar`,
+            'background', `User`.`background`,
+            'createdAt',`User`.`createdAt`,
+            'updatedAt',`User`.`updatedAt`
+        ) FROM `User` WHERE `User`.uid = `Message`.uid),
+        'createdAt', `Message`.`createdAt`,
+        'updatedAt', `Message`.`updatedAt`
+    ) FROM `Message`WHERE `Message`.id = pMessageId
+);
+RETURN @json;
 END$$
 
 DELIMITER ;
@@ -182,9 +213,16 @@ DELIMITER ;
 CREATE TABLE `Conversation` (
   `id` int(11) NOT NULL,
   `lastMessageId` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` datetime DEFAULT NULL
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updatedAt` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `Conversation`
+--
+
+INSERT INTO `Conversation` (`id`, `lastMessageId`, `createdAt`, `updatedAt`) VALUES
+(55, 10, '2022-08-09 08:59:02', NULL);
 
 -- --------------------------------------------------------
 
@@ -199,9 +237,22 @@ CREATE TABLE `Message` (
   `text` varchar(2000) DEFAULT NULL,
   `media` text DEFAULT NULL,
   `status` enum('active','disable','deleted') NOT NULL DEFAULT 'active',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` datetime DEFAULT NULL
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updatedAt` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `Message`
+--
+
+INSERT INTO `Message` (`id`, `conversationId`, `uid`, `text`, `media`, `status`, `createdAt`, `updatedAt`) VALUES
+(3, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'sssssssssss', '', 'active', '2022-08-09 01:24:44', NULL),
+(4, 55, 'uid-41f58522-0f0f-11ed-903b-c6ef0857e0cf', 'sssssssssss', '', 'active', '2022-08-09 01:29:01', NULL),
+(6, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'sssssssssss', '', 'active', '2022-08-09 01:44:28', NULL),
+(7, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-09 08:45:19', NULL),
+(8, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-09 08:46:55', NULL),
+(9, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-09 08:55:56', NULL),
+(10, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-09 08:59:02', NULL);
 
 --
 -- Triggers `Message`
@@ -228,15 +279,15 @@ CREATE TABLE `User` (
   `background` varchar(500) DEFAULT NULL,
   `accessToken` varchar(500) DEFAULT NULL,
   `fcmToken` varchar(500) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `User`
 --
 
-INSERT INTO `User` (`id`, `uid`, `name`, `email`, `accountType`, `password`, `avatar`, `background`, `accessToken`, `fcmToken`, `created_at`, `updated_at`) VALUES
+INSERT INTO `User` (`id`, `uid`, `name`, `email`, `accountType`, `password`, `avatar`, `background`, `accessToken`, `fcmToken`, `createdAt`, `updatedAt`) VALUES
 (487, 'uid-23990c54-16fb-11ed-bdc5-c6ef0857e0ce', 'quassssng', 'quangtesst@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmd0ZXNzdEBnbWFpbC5jb20iLCJpYXQiOjE2NTk5NTAzNDAsImV4cCI6MTY5MTQ4NjM0MH0.tjTpPShGB2ydh3L3F7HHoC3bzK4i3SLKndSKr0tL4JDH_IobJjoDFYf5VXNwlq0uH0DZ61uz75kigfsFRYgM7g', 'sss', '2022-08-08 09:19:00', '2022-08-08 16:19:00'),
 (437, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'Kathleen Mitchell', 'kathleen.mitchell.54195562@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoia2F0aGxlZW4ubWl0Y2hlbGwuNTQxOTU1NjJAZ21haWwuY29tIiwiaWF0IjoxNjU5MDc5MzcyLCJleHAiOjE2OTA2MTUzNzJ9.mCXsD0YkmErrnBwIv6zwcbDSl3RkUu38PSC_18DOkmWGFsYzLNF44CywQ_bbpFwzo_4OOAyOzSsKiNr2uqC2Ow', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
 (438, 'uid-41ef215a-0f0f-11ed-903b-c6ef0857e0cf', 'Denise Buchanan', 'denise.buchanan.40861892@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZGVuaXNlLmJ1Y2hhbmFuLjQwODYxODkyQGdtYWlsLmNvbSIsImlhdCI6MTY1OTA3OTM3MiwiZXhwIjoxNjkwNjE1MzcyfQ.R4fsk1TTYQ5B5GrVdLFISYFCm0lcLC74vfW3rdJOSKsAPj105HFrxDouE1DfhImNQ3odCDM7_i1p7-TE0v-5jw', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
@@ -300,9 +351,17 @@ CREATE TABLE `UserConversation` (
   `id` int(11) NOT NULL,
   `uid` varchar(50) NOT NULL,
   `conversationId` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` datetime DEFAULT NULL
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updatedAt` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `UserConversation`
+--
+
+INSERT INTO `UserConversation` (`id`, `uid`, `conversationId`, `createdAt`, `updatedAt`) VALUES
+(93, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 55, '2022-08-09 01:03:23', NULL),
+(94, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 55, '2022-08-09 01:03:23', NULL);
 
 --
 -- Indexes for dumped tables
@@ -347,13 +406,13 @@ ALTER TABLE `UserConversation`
 -- AUTO_INCREMENT for table `Conversation`
 --
 ALTER TABLE `Conversation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `Message`
 --
 ALTER TABLE `Message`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `User`
@@ -365,7 +424,7 @@ ALTER TABLE `User`
 -- AUTO_INCREMENT for table `UserConversation`
 --
 ALTER TABLE `UserConversation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
 
 --
 -- Constraints for dumped tables

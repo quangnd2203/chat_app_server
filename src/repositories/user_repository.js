@@ -7,16 +7,6 @@ module.exports.getUser = async (request) => {
     return new NetworkResponse(
         status = 1,
         message = null,
-        data = users.map(u => new UserModel(
-            u.id,
-            u.uid,
-            u.name,
-            u.email,
-            u.accountType,
-            u.avatar,
-            u.background,
-            u.created_at,
-            u.updated_at,
-        )),
+        data = users.map(u => UserModel.fromJson(u)),
     );
 };

@@ -1,62 +1,25 @@
 const conversationRepository = require('../repositories/conversation_repository');
 const NetworkResponse = require('../models/network_response');
-const { validationResult } = require('express-validator');
 
-/**
- * 
- * @param {Server} io 
- * @param {Socket} socket 
- */
-
-module.exports = function ConversationController (io, socket){
-    
-    this.onCreateConversation = (data) => {
-        createConversation(socket.user.uid, data.uid).then((value) => socket.emit('onCreateConversation', value));  
-    };
-
-    this.onMessage = (data) => {
-        
-    }
-
-    // this.getAllConversation = async () => {
-    //     try{
-    //         const errors = validationResult(request);
-    //         if (!errors.isEmpty()) throw Error(errors.array()[0].msg);
-    
-    //         const body = request.body;
-    //         const data = await conversationRepository.getAllConversation(request.user.uid);
-    //         return new NetworkResponse(
-    //             1,
-    //             null,
-    //             data.map(conversation => new ConversationModel(
-    //                 conversation.id,
-    //                 conversation.lastMessage,
-    //                 conversation.users.map(u => new UserModel(
-    //                     u.id,
-    //                     u.uid,
-    //                     u.name,
-    //                     u.email,
-    //                     u.accountType,
-    //                     u.avatar,
-    //                     u.background,
-    //                     u.created_at,
-    //                     u.updated_at,
-    //                 )),
-    //             )),
-    //         );
-    //     }catch(e){
-    //         console.log(e);
-    //         return NetworkResponse.fromErrors(e.message || 'cant_create_conversation');
-    //     }
-    // };
-}
-
-createConversation = async (uid, partnerUid) => {
-    try{
-        const networkResponse = await conversationRepository.createConversation(uid, partnerUid);
-        return networkResponse;
-    }catch(e){
+module.exports.onCreateConversation = async (io, socket, data) => {
+    try {
+        const networkResponse = await conversationRepository.createConversation(socket.user.uid, data.uid);
+        socket.emit('onCreateConversation', networkResponse);
+    } catch (e) {
         console.log(e);
-        return NetworkResponse.fromErrors(e.message || 'cant_create_conversation');
+        socket.emit('error', NetworkResponse.fromErrors(e.message || 'cant_create_conversation'));
     }
-}
+};
+
+module.exports.onMessage = async (io, socket, data) => {
+    try {
+        const networkResponseUser = await conversationRepository.getConversationUsers(data.conversationId);
+        const networkResponseMessage = await conversationRepository.createMessage(data.conversationId, socket.user.uid, data.text, data.media);
+        networkResponseUser.data.forEach(u => {
+            io.to(`uid-${u.uid}`).emit('onMessage', networkResponseMessage);
+        });
+    } catch (e) {
+        console.log(e);
+        socket.emit('error', NetworkResponse.fromErrors(e.message || 'cant_send_message'));
+    }
+};

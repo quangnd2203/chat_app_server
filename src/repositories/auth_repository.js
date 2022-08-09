@@ -12,17 +12,7 @@ module.exports.login = async (email, password, fcmToken, accountType = 'normal')
         1,
         null,
         {
-            user: new UserModel(
-                users[0].id,
-                users[0].uid,
-                users[0].name,
-                users[0].email,
-                users[0].accountType,
-                users[0].avatar,
-                users[0].background,
-                users[0].created_at,
-                users[0].updated_at,
-            ),
+            user: UserModel.fromJson(users[0]),
             accessToken: users[0].accessToken,
         },
     );
@@ -35,17 +25,7 @@ module.exports.authorized = async (email, token,) => {
         1,
         null,
         {
-            user: new UserModel(
-                users[0].id,
-                users[0].uid,
-                users[0].name,
-                users[0].email,
-                users[0].accountType,
-                users[0].avatar,
-                users[0].background,
-                users[0].created_at,
-                users[0].updated_at,
-            ),
+            user: UserModel.fromJson(users[0]),
             accessToken: users[0].accessToken,
         },
     );
@@ -61,17 +41,7 @@ module.exports.register = async (name, email, password, type, fcmToken) => {
         1,
         null,
         {
-            user: new UserModel(
-                users[0].id,
-                users[0].uid,
-                users[0].name,
-                users[0].email,
-                users[0].accountType,
-                users[0].avatar,
-                users[0].background,
-                users[0].created_at,
-                users[0].updated_at,
-            ),
+            user: UserModel.fromJson(users[0]),
             accessToken: users[0].accessToken,
         },
     );
