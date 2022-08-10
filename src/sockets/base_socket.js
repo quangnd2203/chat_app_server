@@ -11,7 +11,9 @@ module.exports = (io, socket) => {
     helper.onSocketConnected();
     socket.on('disconnect', (data) => {
         console.log("DIS");
-    })
+    });
+    socket.on('test1', helper.onTest1);
+    socket.on('test2', helper.onTest2);
 }
 
 /**
@@ -24,5 +26,13 @@ function Helper (io, socket){
     this.onSocketConnected = async () => {
         console.log(`Connected ${socket.id}\nuid-${socket.user.uid}`);
         socket.join(`uid-${socket.user.uid}`);
+    }
+
+    this.onTest1 = async (data) => {
+        io.emit('test1', data);
+    }
+
+    this.onTest2 = async (data) => {
+        io.emit('test2', data);
     }
 }

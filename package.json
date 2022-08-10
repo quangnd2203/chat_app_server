@@ -24,6 +24,7 @@
     "express": "^4.18.1",
     "express-validator": "^6.14.2",
     "googleapis": "^105.0.0",
+    "ip": "^1.1.8",
     "jsonwebtoken": "^8.5.1",
     "no-save": "^1.0.0",
     "promise-mysql": "^5.2.0",

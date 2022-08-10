@@ -9,14 +9,14 @@ const UserModel = require("./user_model");
  * @param {Date} updatedAt
  */
 
-function MessageModel(id, conversationId, text, media, user, createAt, updateAt){
+function MessageModel(id, conversationId, text, media, user, createdAt, updatedAt){
     this.id = id;
     this.conversationId = conversationId;
     this.text = text;
     this.media = media;
     this.user = user;
-    this.createAt = createAt;
-    this.updateAt = updateAt;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
 }
 
 MessageModel.fromJson = (json) => new MessageModel(
@@ -25,8 +25,8 @@ MessageModel.fromJson = (json) => new MessageModel(
     json.text,
     json.media,
     json.user != null ? UserModel.fromJson(json.user) : null,
-    json.created_at,
-    json.updated_at,
+    json.createdAt,
+    json.updatedAt,
 );
 
 module.exports = MessageModel;
