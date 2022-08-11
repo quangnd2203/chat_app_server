@@ -19,9 +19,8 @@ module.exports.createConversation = async (uid, partnerUid) => {
     );
 }
 
-module.exports.getAllConversation = async (uid) => {
-    const result = await sqlConnection.query('CALL `conversationGetAll`(?);', [uid]);
-    console.log(result);
+module.exports.getAllConversation = async (uid, limit, offset) => {
+    const result = await sqlConnection.query('CALL `conversationGetAll`(?,?,?);', [uid, limit || 15, offset || 0]);
     return new NetworkResponse(
         1,
         null,

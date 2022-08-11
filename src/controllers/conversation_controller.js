@@ -26,7 +26,7 @@ module.exports.onMessage = async (io, socket, data) => {
 
 module.exports.getAllConversation = async (request) => {
     try {
-        const networkResponse = await conversationRepository.getAllConversation(request.user.uid);
+        const networkResponse = await conversationRepository.getAllConversation(request.user.uid, request.query.limit, request.query.offset);
         return networkResponse;
     } catch (e) {
         console.log(e);
