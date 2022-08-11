@@ -24,7 +24,7 @@ module.exports = (io, socket) => {
 
 function Helper (io, socket){
     this.onSocketConnected = async () => {
-        console.log(`Connected ${socket.id}\nuid-${socket.user.uid}`);
+        console.log(`Connected: ${socket.id}\nUser: ${socket.user.uid}`);
         socket.join(`uid-${socket.user.uid}`);
     }
 

@@ -31,8 +31,8 @@ UserModel.fromJson = (json) => new UserModel(
     json.accountType,
     json.avatar,
     json.background,
-    json.createdAt,
-    json.updatedAt,
+    new Date(`${json.createdAt}`),
+    new Date(`${json.updatedAt}`),
 );
 
 module.exports = UserModel;

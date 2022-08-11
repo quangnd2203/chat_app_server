@@ -21,8 +21,8 @@ ConversationModel.fromJson = (json) => new ConversationModel(
     json.id,
     json.lastMessage != null ? MessageModel.fromJson(json.lastMessage) : null,
     json.users != null ? json.users.map(u => UserModel.fromJson(u)) : [],
-    json.createdAt,
-    json.updatedAt,
+    new Date(`${json.createdAt}`),
+    new Date(`${json.updatedAt}`),
 );
 
 module.exports = ConversationModel;

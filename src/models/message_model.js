@@ -25,8 +25,8 @@ MessageModel.fromJson = (json) => new MessageModel(
     json.text,
     json.media,
     json.user != null ? UserModel.fromJson(json.user) : null,
-    json.createdAt,
-    json.updatedAt,
+    new Date(`${json.createdAt}`),
+    new Date(`${json.updatedAt}`),
 );
 
 module.exports = MessageModel;

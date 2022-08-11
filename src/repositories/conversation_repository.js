@@ -19,15 +19,22 @@ module.exports.createConversation = async (uid, partnerUid) => {
     );
 }
 
-// module.exports.getAllConversation = async (uid) => {
-//     var result = await sqlConnection.query('CALL `conversationGetAll`(?);', [uid]);
-//     result = result.map(conversation => {
-//         conversation.users = JSON.parse(conversation.users);
-//         conversation.lastMessage = JSON.parse(conversation.lastMessage || null);
-//         return conversation;
-//     });
-//     return result;
-// }
+module.exports.getAllConversation = async (uid) => {
+    const result = await sqlConnection.query('CALL `conversationGetAll`(?);', [uid]);
+    console.log(result);
+    return new NetworkResponse(
+        1,
+        null,
+        result.map(c => {
+            c.users = JSON.parse(c.users);
+            if(c.lastMessage != null){
+                c.lastMessage = JSON.parse(c.lastMessage);
+                c.lastMessage.user = JSON.parse(c.lastMessage.user);
+            }
+            return ConversationModel.fromJson(c);
+        })
+    );
+}
 
 module.exports.getConversationById = async (conversationId) => {
     const result = await sqlConnection.query('CALL `getConversationById`(?);', [conversationId]);

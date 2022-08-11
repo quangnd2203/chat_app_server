@@ -23,3 +23,13 @@ module.exports.onMessage = async (io, socket, data) => {
         socket.emit('error', NetworkResponse.fromErrors(e.message || 'cant_send_message'));
     }
 };
+
+module.exports.getAllConversation = async (request) => {
+    try {
+        const networkResponse = await conversationRepository.getAllConversation(request.user.uid);
+        return networkResponse;
+    } catch (e) {
+        console.log(e);
+        return NetworkResponse.fromErrors(e.message || 'cant_send_message');
+    }
+}
