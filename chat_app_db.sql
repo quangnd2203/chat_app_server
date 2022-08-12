@@ -6,7 +6,7 @@ CREATE DATABASE chat_app_db;
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 09, 2022 at 11:01 AM
+-- Generation Time: Aug 12, 2022 at 04:09 AM
 -- Server version: 10.4.21-MariaDB
 -- PHP Version: 7.4.29
 
@@ -45,7 +45,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationCreate` (IN `pUid` TEXT
     CALL `conversationGetById`(`pConversationId`);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetAll` (IN `pUid` TEXT)   SELECT `Conversation`.`id`, (
+CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetAll` (IN `pUid` TEXT, IN `pLimit` INT, IN `pOffset` INT)   SELECT `Conversation`.`id`, (
     SELECT CONCAT(
         "[", GROUP_CONCAT(JSON_OBJECT(
             "id",`User`.`id`,
@@ -65,8 +65,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetAll` (IN `pUid` TEXT
 (
 	SELECT messageGetById(`Conversation`.`lastMessageId`)
 ) as `lastMessage`,
-`Conversation`.`created_at`, `Conversation`.`updated_at`
-FROM `Conversation` INNER JOIN `UserConversation` ON `UserConversation`.`uid` = `pUid` GROUP BY `Conversation`.`id`$$
+`Conversation`.`createdAt`, `Conversation`.`updatedAt`
+FROM `Conversation` INNER JOIN `UserConversation` ON `UserConversation`.`uid` = `pUid` GROUP BY `Conversation`.`id` LIMIT pLimit OFFSET pOffset$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetById` (IN `pConversationId` INT)   SELECT `Conversation`.`id`, (
     SELECT CONCAT(
@@ -88,7 +88,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetById` (IN `pConversa
 (
 	SELECT messageGetById(`Conversation`.`lastMessageId`)
 ) as `lastMessage`,
-`Conversation`.`created_at`, `Conversation`.`updated_at`
+`Conversation`.`createdAt`, `Conversation`.`updatedAt`
 FROM `Conversation` WHERE `Conversation`.`id` = `pConversationId`$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetUsers` (IN `pConversationId` INT)   SELECT * 
@@ -99,6 +99,27 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `messageCreate` (IN `pConversationId
 	INSERT INTO `Message` (`conversationId`, `uid`, `text`, `media`) VALUES (`pConversationId`, `pUid`, `pText`, `pMedia`);
 	CALL `messageGetById`(LAST_INSERT_ID());
 END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `messageGetByConversationId` (IN `pConversationId` INT, IN `pLimit` INT, IN `pOffset` INT)   SELECT 
+	`Message`.`id`, 
+    `Message`.`conversationId`, 
+    `Message`.`text`, 
+    `Message`.`media`,
+    `Message`.`createdAt`,
+    `Message`.`updatedAt`,
+    (SELECT JSON_OBJECT(
+    	'id', `User`.`id`,
+        'uid', `User`.`uid`,
+        'name', `User`.`name`,
+        'email', `User`.`email`,
+        'accountType', `User`.`accountType`,
+        'avatar', `User`.`avatar`,
+        'background', `User`.`background`,
+        'createdAt',`User`.`createdAt`,
+        'updatedAt',`User`.`updatedAt`
+	) FROM `User` WHERE `User`.uid = `Message`.uid) as `user`
+FROM `Message` WHERE `Message`.`conversationId` = `pConversationId`
+ORDER BY `Message`.`createdAt` DESC LIMIT `pLimit` OFFSET `pOffset`$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `messageGetById` (IN `pMessageId` INT)   SELECT 
         `Message`.`id`, 
@@ -213,8 +234,8 @@ DELIMITER ;
 CREATE TABLE `Conversation` (
   `id` int(11) NOT NULL,
   `lastMessageId` int(11) DEFAULT NULL,
-  `createdAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updatedAt` datetime DEFAULT NULL
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -222,7 +243,7 @@ CREATE TABLE `Conversation` (
 --
 
 INSERT INTO `Conversation` (`id`, `lastMessageId`, `createdAt`, `updatedAt`) VALUES
-(55, 10, '2022-08-09 08:59:02', NULL);
+(55, 18, '2022-08-11 09:47:20', NULL);
 
 -- --------------------------------------------------------
 
@@ -237,8 +258,8 @@ CREATE TABLE `Message` (
   `text` varchar(2000) DEFAULT NULL,
   `media` text DEFAULT NULL,
   `status` enum('active','disable','deleted') NOT NULL DEFAULT 'active',
-  `createdAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updatedAt` datetime DEFAULT NULL
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -252,7 +273,15 @@ INSERT INTO `Message` (`id`, `conversationId`, `uid`, `text`, `media`, `status`,
 (7, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-09 08:45:19', NULL),
 (8, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-09 08:46:55', NULL),
 (9, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-09 08:55:56', NULL),
-(10, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-09 08:59:02', NULL);
+(10, 55, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-09 08:59:02', NULL),
+(11, 55, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-11 08:29:41', NULL),
+(12, 55, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'aaaaa', NULL, 'active', '2022-08-11 08:29:49', NULL),
+(13, 55, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'tesst nhe', NULL, 'active', '2022-08-11 08:40:04', NULL),
+(14, 55, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'tesst nhe', NULL, 'active', '2022-08-11 08:40:07', NULL),
+(15, 55, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'chao cau', NULL, 'active', '2022-08-11 08:40:15', NULL),
+(16, 55, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'chao cau minh la trma', NULL, 'active', '2022-08-11 08:40:26', NULL),
+(17, 55, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'chao cau minh la trma', NULL, 'active', '2022-08-11 09:47:00', NULL),
+(18, 55, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 'chao cau minh la trma', NULL, 'active', '2022-08-11 09:47:20', NULL);
 
 --
 -- Triggers `Message`
@@ -339,7 +368,7 @@ INSERT INTO `User` (`id`, `uid`, `name`, `email`, `accountType`, `password`, `av
 (484, 'uid-41fab574-0f0f-11ed-903b-c6ef0857e0cf', 'Juanita Lopez', 'juanita.lopez.42037462@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoianVhbml0YS5sb3Blei40MjAzNzQ2MkBnbWFpbC5jb20iLCJpYXQiOjE2NTkwNzkzNzIsImV4cCI6MTY5MDYxNTM3Mn0.MBA64yBYUQTU0oE30_dNEj_gTfpqS_VC6eodPatIK3ZkgRsIhvxsnRB-SZ54qhdmzvlnP7Zfc0iOiN__hPuAog', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
 (485, 'uid-41fac7da-0f0f-11ed-903b-c6ef0857e0cf', 'Audrey Sims', 'audrey.sims.82613616@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiYXVkcmV5LnNpbXMuODI2MTM2MTZAZ21haWwuY29tIiwiaWF0IjoxNjU5MDc5MzcyLCJleHAiOjE2OTA2MTUzNzJ9.U2KG42B1OW9DPfCkhNNf10uRnPbuWWzoqKE3-zjjesdHpyCmlrfGzIBst9QHD3a70GsIFr6Nnf-iTqULO8-45w', NULL, '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
 (486, 'uid-41fadad6-0f0f-11ed-903b-c6ef0857e0cf', 'Sherry Warren', 'sherry.warren.63619010@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoic2hlcnJ5LndhcnJlbi42MzYxOTAxMEBnbWFpbC5jb20iLCJpYXQiOjE2NTkwNzkzNzIsImV4cCI6MTY5MDYxNTM3Mn0.ZVYy67UM_TRlGM2VreMYndFMDO5fXWrfciU6b3rVs161iPj5oRqslfYpw7jpTVU-ndo9wyFPPBa1e3vRTVbbAg', 'flEBJM_xRGGM9-0s8PGDkC:APA91bGWRtCQF51I_dOHp3mWqbJFDruVK0p5wO-LUdkZm-jh5vvWa1SZCWMyG6dQn0S083XS5yDsSx4bEAEW1AMKaj7DUrYAjkabcxEIBHva9C3ZKNKkbmq2ubYAh2gYNMijTEdERBt1', '2022-07-29 07:22:52', '2022-07-29 14:22:52'),
-(436, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'Nguyen Dang Quang', 'quangnd.nta@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjU5OTQ4MzI0LCJleHAiOjE2OTE0ODQzMjR9.FnZy_kZ-uFAgw_Og5AkVP4pfaXnxJLWhVlbd70l67tvqwY6B_bIygGTH5XoV6g_V4xvKIzuhu0dws4WIaeNDgw', 'AAAA', '2022-07-29 07:11:41', '2022-08-08 15:45:24');
+(436, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 'Nguyen Dang Quang', 'quangnd.nta@gmail.com', 'normal', '32ff5fea7d6c46c0590a4f3bbc3293f54025ab332a59d5d3a3c8271920b857470f3c71b90c3b4f70cba88c0d3a2a5ce8d065332b3e9e539a5f7e7ec0fcfaaf3f', NULL, NULL, 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjYwMjAxNjAyLCJleHAiOjE2OTE3Mzc2MDJ9.QurOppSEhHYn-w4OMhPfL6jQRtMx9ISuEMnDdEFr9nB-o_swt5z4IWjU3G0KobJsu0srZgCqnmENwBzuNrNVIg', 'fXmu9e0XTZyZe7sJCHmZRj:APA91bFl7XCsG95T1301tzPzYkBBI5XWIjc8CObUAXWO43czOeidJcGbCNDcbT8GEql_pZ5VQYT8TiyBm4e865wZpwIrjJjN7-oGUNvJmphD9a7TgB2ZCsqjpkNRr5Ge96zdw0WAgvt2', '2022-07-29 07:11:41', '2022-08-11 14:06:42');
 
 -- --------------------------------------------------------
 
@@ -351,8 +380,8 @@ CREATE TABLE `UserConversation` (
   `id` int(11) NOT NULL,
   `uid` varchar(50) NOT NULL,
   `conversationId` int(11) NOT NULL,
-  `createdAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updatedAt` datetime DEFAULT NULL
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -360,8 +389,8 @@ CREATE TABLE `UserConversation` (
 --
 
 INSERT INTO `UserConversation` (`id`, `uid`, `conversationId`, `createdAt`, `updatedAt`) VALUES
-(93, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 55, '2022-08-09 01:03:23', NULL),
-(94, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 55, '2022-08-09 01:03:23', NULL);
+(93, 'uid-b215d4bc-0f0d-11ed-903b-c6ef0857e0cf', 55, '2022-08-09 01:03:23', '2022-08-12 08:35:28'),
+(94, 'uid-41eb2d84-0f0f-11ed-903b-c6ef0857e0cf', 55, '2022-08-09 01:03:23', '2022-08-12 08:35:28');
 
 --
 -- Indexes for dumped tables
@@ -412,7 +441,7 @@ ALTER TABLE `Conversation`
 -- AUTO_INCREMENT for table `Message`
 --
 ALTER TABLE `Message`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `User`

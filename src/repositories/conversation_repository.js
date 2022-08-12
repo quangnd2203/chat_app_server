@@ -35,6 +35,18 @@ module.exports.getAllConversation = async (uid, limit, offset) => {
     );
 }
 
+module.exports.getMessagesByConversationId = async (conversationId, limit, offset) => {
+    const result = await sqlConnection.query('CALL `messageGetByConversationId`(?,?,?);', [conversationId, limit || 15, offset || 0]);
+    return new NetworkResponse(
+        1,
+        null,
+        result.map(m => {
+            m.user = JSON.parse(m.user);
+            return MessageModel.fromJson(m);
+        }),
+    );
+}
+
 module.exports.getConversationById = async (conversationId) => {
     const result = await sqlConnection.query('CALL `getConversationById`(?);', [conversationId]);
     if ((result?.length || 0) == 0) throw Error('ivalid_conversation');

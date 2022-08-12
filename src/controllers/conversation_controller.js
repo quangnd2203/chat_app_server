@@ -30,6 +30,16 @@ module.exports.getAllConversation = async (request) => {
         return networkResponse;
     } catch (e) {
         console.log(e);
-        return NetworkResponse.fromErrors(e.message || 'cant_send_message');
+        return NetworkResponse.fromErrors(e.message || 'cant_get_conversations');
+    }
+}
+
+module.exports.getMessagesByConversationId = async (request) => {
+    try{
+        const networkResponse = await conversationRepository.getMessagesByConversationId(request.query.conversationId, request.query.limit, request.query.offset);
+        return networkResponse;
+    } catch(e) {
+        console.log(e);
+        return NetworkResponse.fromErrors(e.message || 'cant_get_message');
     }
 }

@@ -9,4 +9,10 @@ router.get('/getAll', authorizedServer, (request, response) => {
     });
 });
 
+router.get('/message', authorizedServer, (request, response) => {
+    conversationController.getMessagesByConversationId(request).then((value) => {
+        response.send(value);
+    });
+});
+
 module.exports = router;
