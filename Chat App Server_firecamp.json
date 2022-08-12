@@ -1,6 +1,6 @@
 {
     "meta": {
-        "__export_time": 1660035759660,
+        "__export_time": 1660271465074,
         "__export_app": "firecamp_v2.6.1 ",
         "__export_version": 1
     },
@@ -307,6 +307,128 @@
                             }
                         }
                     ]
+                },
+                {
+                    "meta": {
+                        "name": "conversation/getAll",
+                        "description": "",
+                        "active_auth": "inherit",
+                        "type": "api",
+                        "version": "1.0"
+                    },
+                    "url": {
+                        "slashes": false,
+                        "protocol": "",
+                        "hash": "",
+                        "query": "",
+                        "pathname": "",
+                        "auth": "",
+                        "host": "",
+                        "port": "",
+                        "hostname": "",
+                        "password": "",
+                        "username": "",
+                        "origin": "null",
+                        "href": "",
+                        "query_params": []
+                    },
+                    "method": "GET",
+                    "headers": [],
+                    "config": {
+                        "ORIGIN": "",
+                        "USERAGENT": "",
+                        "TIMEOUT_MS": 0,
+                        "REJECT_UNAUTHORIZED": false,
+                        "FOLLOWLOCATION": true,
+                        "MAXREDIRS": -1,
+                        "HTTP_VERSION": "V2Tls"
+                    },
+                    "scripts": {
+                        "pre": "",
+                        "post": "",
+                        "test": ""
+                    },
+                    "bodies": [
+                        {
+                            "name": "Default",
+                            "body": {},
+                            "meta": {
+                                "active_body_type": "noBody",
+                                "is_default": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "meta": {
+                        "name": "conversation/message",
+                        "description": "",
+                        "active_auth": "bearer",
+                        "type": "api",
+                        "version": "1.0"
+                    },
+                    "url": {
+                        "slashes": false,
+                        "protocol": "",
+                        "hash": "",
+                        "query": "",
+                        "pathname": "{{base_apis}}/conversation/message",
+                        "auth": "",
+                        "host": "",
+                        "port": "",
+                        "hostname": "",
+                        "password": "",
+                        "username": "",
+                        "origin": "null",
+                        "href": "{{base_apis}}/conversation/message?conversationId=55&limit=1",
+                        "query_params": [
+                            {
+                                "key": "conversationId",
+                                "value": "55",
+                                "disable": false,
+                                "type": "text"
+                            },
+                            {
+                                "key": "limit",
+                                "value": "1",
+                                "disable": false,
+                                "type": "text"
+                            }
+                        ],
+                        "path_params": []
+                    },
+                    "method": "GET",
+                    "headers": [],
+                    "config": {
+                        "ORIGIN": "",
+                        "USERAGENT": "",
+                        "TIMEOUT_MS": 0,
+                        "REJECT_UNAUTHORIZED": false,
+                        "FOLLOWLOCATION": true,
+                        "MAXREDIRS": -1,
+                        "HTTP_VERSION": "V2Tls"
+                    },
+                    "scripts": {
+                        "pre": "",
+                        "post": "",
+                        "test": ""
+                    },
+                    "auth": {
+                        "bearer": {
+                            "token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoicXVhbmduZC5udGFAZ21haWwuY29tIiwiaWF0IjoxNjYwMjcxMzE0LCJleHAiOjE2OTE4MDczMTR9.CtaOYvMV6X7JmsfRpRt5cVHQlhUh4qfyOqnPlp_WmCw-SwfShuoxpFSJuERlm-aneRsjxwg98ivl6fmu2PTBDA",
+                            "prefix": ""
+                        }
+                    },
+                    "bodies": [
+                        {
+                            "name": "Default",
+                            "body": {},
+                            "meta": {
+                                "active_body_type": "noBody",
+                                "is_default": true
+                            }
+                        }
+                    ]
                 }
             ]
         }
@@ -508,6 +630,40 @@
                     ],
                     "meta": {
                         "label": "sendMessage",
+                        "interval": "",
+                        "ack": false
+                    }
+                },
+                {
+                    "name": "test1",
+                    "body": [
+                        {
+                            "meta": {
+                                "type": "text",
+                                "envelope": ""
+                            },
+                            "payload": "sssdsdsdsd test1"
+                        }
+                    ],
+                    "meta": {
+                        "label": "test1",
+                        "interval": "",
+                        "ack": false
+                    }
+                },
+                {
+                    "name": "test2",
+                    "body": [
+                        {
+                            "meta": {
+                                "type": "text",
+                                "envelope": ""
+                            },
+                            "payload": "onTesssss2sdasdasd"
+                        }
+                    ],
+                    "meta": {
+                        "label": "test2",
                         "interval": "",
                         "ack": false
                     }
