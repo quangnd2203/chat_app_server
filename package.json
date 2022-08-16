@@ -4,6 +4,7 @@
   "description": "NodeJs + mySql",
   "main": "src/main.js",
   "scripts": {
+    "start": "nodemon src/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,6 +28,7 @@
     "ip": "^1.1.8",
     "jsonwebtoken": "^8.5.1",
     "no-save": "^1.0.0",
+    "nodemon": "^2.0.19",
     "promise-mysql": "^5.2.0",
     "socket.io": "^4.5.1"
   }

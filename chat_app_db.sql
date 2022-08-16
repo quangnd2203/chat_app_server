@@ -1,5 +1,3 @@
-DROP DATABASE chat_app_db;
-CREATE DATABASE chat_app_db;
 
 -- phpMyAdmin SQL Dump
 -- version 5.2.0
