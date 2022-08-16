@@ -5,12 +5,11 @@ var db;
 
 
 module.exports.createConnection = async () => {
-    console.log("AAAAA");
     try{
         // console.log(`Connecting: ${process.env.MYSQL_CONFIGS}`);
         // db = await mySql.createConnection(JSON.parse(process.env.MYSQL_CONFIGS));
         db = await mySql.createConnection({
-            "host":"192.168.128.3",
+            "host":"localhost",
             "port": 3306,
             "database": "chat_app_db",
             "user": "quangnd.nta",
