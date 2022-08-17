@@ -1,9 +1,8 @@
-
 -- phpMyAdmin SQL Dump
 -- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
+-- Host: %
 -- Generation Time: Aug 12, 2022 at 04:09 AM
 -- Server version: 10.4.21-MariaDB
 -- PHP Version: 7.4.29
@@ -26,7 +25,7 @@ DELIMITER $$
 --
 -- Procedures
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationCreate` (IN `pUid` TEXT, IN `pPartnerUid` TEXT)   BEGIN
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `conversationCreate` (IN `pUid` TEXT, IN `pPartnerUid` TEXT)   BEGIN
 	DECLARE `pConversationId` INT;
    	SET @json = (SELECT `getConversationIdByUids`(`pUid`, `pPartnerUid`));
     SET @count = (SELECT JSON_EXTRACT(@json, "$.count"));
@@ -43,7 +42,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationCreate` (IN `pUid` TEXT
     CALL `conversationGetById`(`pConversationId`);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetAll` (IN `pUid` TEXT, IN `pLimit` INT, IN `pOffset` INT)   SELECT `Conversation`.`id`, (
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `conversationGetAll` (IN `pUid` TEXT, IN `pLimit` INT, IN `pOffset` INT)   SELECT `Conversation`.`id`, (
     SELECT CONCAT(
         "[", GROUP_CONCAT(JSON_OBJECT(
             "id",`User`.`id`,
@@ -66,7 +65,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetAll` (IN `pUid` TEXT
 `Conversation`.`createdAt`, `Conversation`.`updatedAt`
 FROM `Conversation` INNER JOIN `UserConversation` ON `UserConversation`.`uid` = `pUid` GROUP BY `Conversation`.`id` LIMIT pLimit OFFSET pOffset$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetById` (IN `pConversationId` INT)   SELECT `Conversation`.`id`, (
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `conversationGetById` (IN `pConversationId` INT)   SELECT `Conversation`.`id`, (
     SELECT CONCAT(
         "[", GROUP_CONCAT(JSON_OBJECT(
             "id",`User`.`id`,
@@ -89,16 +88,16 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetById` (IN `pConversa
 `Conversation`.`createdAt`, `Conversation`.`updatedAt`
 FROM `Conversation` WHERE `Conversation`.`id` = `pConversationId`$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `conversationGetUsers` (IN `pConversationId` INT)   SELECT * 
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `conversationGetUsers` (IN `pConversationId` INT)   SELECT * 
     FROM `User` INNER JOIN `UserConversation` 
     ON `UserConversation`.`uid` = `User`.`uid` AND `UserConversation`.`conversationId` = `pConversationId`$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `messageCreate` (IN `pConversationId` INT, IN `pUid` TEXT, IN `pText` TEXT, IN `pMedia` TEXT)   BEGIN
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `messageCreate` (IN `pConversationId` INT, IN `pUid` TEXT, IN `pText` TEXT, IN `pMedia` TEXT)   BEGIN
 	INSERT INTO `Message` (`conversationId`, `uid`, `text`, `media`) VALUES (`pConversationId`, `pUid`, `pText`, `pMedia`);
 	CALL `messageGetById`(LAST_INSERT_ID());
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `messageGetByConversationId` (IN `pConversationId` INT, IN `pLimit` INT, IN `pOffset` INT)   SELECT 
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `messageGetByConversationId` (IN `pConversationId` INT, IN `pLimit` INT, IN `pOffset` INT)   SELECT 
 	`Message`.`id`, 
     `Message`.`conversationId`, 
     `Message`.`text`, 
@@ -119,7 +118,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `messageGetByConversationId` (IN `pC
 FROM `Message` WHERE `Message`.`conversationId` = `pConversationId`
 ORDER BY `Message`.`createdAt` DESC LIMIT `pLimit` OFFSET `pOffset`$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `messageGetById` (IN `pMessageId` INT)   SELECT 
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `messageGetById` (IN `pMessageId` INT)   SELECT 
         `Message`.`id`, 
         `Message`.`conversationId`, 
         `Message`.`text`, 
@@ -139,15 +138,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `messageGetById` (IN `pMessageId` IN
         ) FROM `User` WHERE `User`.uid = `Message`.uid) as `user`
     	FROM `Message` WHERE `Message`.`id` = pMessageId$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `systemGetStatus` (IN `pMessage` VARCHAR(50), IN `pStatus` INT)   SELECT `pMessage` AS message, `pStatus` AS 'status'$$
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `systemGetStatus` (IN `pMessage` VARCHAR(50), IN `pStatus` INT)   SELECT `pMessage` AS message, `pStatus` AS 'status'$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `userAuthorize` (IN `pEmail` VARCHAR(50), IN `pAccessToken` VARCHAR(500))   BEGIN
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `userAuthorize` (IN `pEmail` VARCHAR(50), IN `pAccessToken` VARCHAR(500))   BEGIN
 SELECT * FROM `User` WHERE `email` = pEmail AND `accessToken` = pAccessToken;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `userGetAll` (IN `pUid` TEXT, IN `pLimit` INT, IN `pOffset` INT)   SELECT * FROM User WHERE `uid` != pUid LIMIT pLimit OFFSET pOffset$$
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `userGetAll` (IN `pUid` TEXT, IN `pLimit` INT, IN `pOffset` INT)   SELECT * FROM User WHERE `uid` != pUid LIMIT pLimit OFFSET pOffset$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `userLogin` (IN `pEmail` VARCHAR(50), IN `pPassword` VARCHAR(200), IN `pAccountType` ENUM('normal','facebook','google'), IN `pAccessToken` VARCHAR(500))   BEGIN
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `userLogin` (IN `pEmail` VARCHAR(50), IN `pPassword` VARCHAR(200), IN `pAccountType` ENUM('normal','facebook','google'), IN `pAccessToken` VARCHAR(500))   BEGIN
 IF(`pAccountType` = 'normal') THEN
 	BEGIN
         UPDATE `User` SET `accessToken` = pAccessToken WHERE `email` = pEmail AND `password` = pPassword AND `accountType` = pAccountType;
@@ -161,7 +160,7 @@ ELSE
 END IF;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `userRegister` (IN `pName` VARCHAR(50), IN `pEmail` VARCHAR(50), IN `pPassword` VARCHAR(200), IN `pAccountType` VARCHAR(50), IN `pAccessToken` VARCHAR(500), OUT `pMessage` VARCHAR(100), OUT `pStatus` INT)   BEGIN
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `userRegister` (IN `pName` VARCHAR(50), IN `pEmail` VARCHAR(50), IN `pPassword` VARCHAR(200), IN `pAccountType` VARCHAR(50), IN `pAccessToken` VARCHAR(500), OUT `pMessage` VARCHAR(100), OUT `pStatus` INT)   BEGIN
   DECLARE `pUid` VARCHAR(50);
   SET `pStatus` = 0;
   SELECT COUNT(*) INTO @count FROM `User` WHERE `email` = `pEmail`;
@@ -178,7 +177,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `userRegister` (IN `pName` VARCHAR(5
   END IF;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `userUpdateFcmToken` (IN `pUid` TEXT, IN `pFcmToken` TEXT)   BEGIN
+CREATE DEFINER=`quangnd.nta`@`%` PROCEDURE `userUpdateFcmToken` (IN `pUid` TEXT, IN `pFcmToken` TEXT)   BEGIN
 	UPDATE `User` SET `fcmToken` = NULL WHERE `fcmToken` = pFcmToken;
     UPDATE `User` SET `fcmToken` = pFcmToken WHERE `uid` = pUid;
 END$$
@@ -186,7 +185,7 @@ END$$
 --
 -- Functions
 --
-CREATE DEFINER=`root`@`localhost` FUNCTION `getConversationIdByUids` (`pUid` TEXT, `pPartnerUid` TEXT) RETURNS LONGTEXT CHARSET utf8mb4 COLLATE utf8mb4_bin  BEGIN
+CREATE DEFINER=`quangnd.nta`@`%` FUNCTION `getConversationIdByUids` (`pUid` TEXT, `pPartnerUid` TEXT) RETURNS LONGTEXT CHARSET utf8mb4 COLLATE utf8mb4_bin  BEGIN
 SELECT `conversationId` INTO @conversationId FROM `UserConversation`
 	GROUP BY `UserConversation`.`uid` HAVING `UserConversation`.`uid` IN (`pUid`, `pPartnerUid`) LIMIT 1;
 SET @count = (SELECT COUNT(*) FROM (
@@ -196,7 +195,7 @@ SET @count = (SELECT COUNT(*) FROM (
     RETURN JSON_OBJECT("conversationId", @conversationId, "count", @count);
 END$$
 
-CREATE DEFINER=`root`@`localhost` FUNCTION `messageGetById` (`pMessageId` INT) RETURNS LONGTEXT CHARSET utf8mb4  BEGIN
+CREATE DEFINER=`quangnd.nta`@`%` FUNCTION `messageGetById` (`pMessageId` INT) RETURNS LONGTEXT CHARSET utf8mb4  BEGIN
 SET @json = (
     SELECT JSON_OBJECT(
         'id', `Message`.`id`,
