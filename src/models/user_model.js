@@ -1,38 +1,20 @@
+const mongoose = require("mongoose");
 
-/**
- * @param {Number} id 
- * @param {string} uid
- * @param {string} name
- * @param {string} email
- * @param {string} accountType
- * @param {string} avatar
- * @param {string} background
- * @param {Date} createdAt
- * @param {Date} updatedAt
- */
+const { ObjectId } = mongoose.Schema;
 
-function UserModel(id, uid, name, email, accountType, avatar, background, createdAt, updatedAt) {
-    this.id = id;
-    this.uid = uid;
-    this.name = name;
-    this.email = email;
-    this.accountType = accountType;
-    this.avatar = avatar;
-    this.background = background;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
-}
+const schema = new mongoose.Schema({
+    id: { type: Number, require: true, },
+    uid: { type: String, require: true, trim: true, },
+    name: { type: String, require: [true, 'name is required'], trim: true, },
+    email: { type: String, require: [true, 'email is required'], trim: true, },
+    password: { type: String, trim: true, },
+    accountType: { type: String, enum: ['normal', 'google', 'facebook'], require: [true, 'accountType is required'], trim: true, },
+    avatar: { type: String, trim: true, },
+    background: { type: String, trim: true, },
+    accessToken: { type: String, trim: true, },
+    fcmToken: { type: String, trim: true, },
+}, {
+    timestamps: true,
+});
 
-UserModel.fromJson = (json) => new UserModel(
-    json.id,
-    json.uid,
-    json.name,
-    json.email,
-    json.accountType,
-    json.avatar,
-    json.background,
-    new Date(`${json.createdAt}`),
-    new Date(`${json.updatedAt}`),
-);
-
-module.exports = UserModel;
+module.exports = mongoose.model('UserModel', schema);
