@@ -1,32 +1,15 @@
-const UserModel = require("./user_model");
-/**
- * @param {Number} id
- * @param {Number} conversationId
- * @param {String} text
- * @param {String} media
- * @param {UserModel} user
- * @param {Date} createdAt
- * @param {Date} updatedAt
- */
+const mongoose = require("mongoose");
 
-function MessageModel(id, conversationId, text, media, user, createdAt, updatedAt){
-    this.id = id;
-    this.conversationId = conversationId;
-    this.text = text;
-    this.media = media;
-    this.user = user;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
-}
+const { ObjectId } = mongoose.Schema;
 
-MessageModel.fromJson = (json) => new MessageModel(
-    json.id,
-    json.conversationId,
-    json.text,
-    json.media,
-    json.user != null ? UserModel.fromJson(json.user) : null,
-    new Date(`${json.createdAt}`),
-    new Date(`${json.updatedAt}`),
-);
+const schema = new mongoose.Schema({
+    id: { type: Number, require: true},
+    conversation: { type: ObjectId, ref: 'ConversationModel'},
+    text: { type: String, trim: true},
+    media: { type: String, trim: true},
+    user: { type: ObjectId, ref: 'UserModel'},
+}, {
+    timestamps: true,
+});
 
-module.exports = MessageModel;
+module.exports = mongoose.model('MessageModel', schema);
