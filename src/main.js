@@ -10,20 +10,7 @@ databaseConnection.createConnection(() => {
     app.listen(process.env.SERVER_PORT, () => {
         console.log(`Server is up and running on port: ${process.env.SERVER_PORT}`);
     });
-    UserModel.create({
-        id: null,
-        name: 'Nguyen Dang Quang',
-        email: 'quangnd.nta@gmail.com',
-        accountType: 'normal',
-        password: null,
-        avatar: null,
-        background: null,
-        accessToken: null,
-        fcmToken: null,
-    }).then(async (value) => {
-        console.log(`User: ${value}`);
-    });
-
+    // UserModel.schema.c
 });
 
 
