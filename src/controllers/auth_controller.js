@@ -14,7 +14,6 @@ module.exports.loginNormal = async (request) => {
         const hashPass = utils.hashPassword(body.password);
         const networkResponse = await authRepository.login(body.email, hashPass, body.fcmToken);
         return networkResponse;
-        return ;
     } catch (e) {
         console.log(e);
         return NetworkResponse.fromErrors(e.message || 'wrong_email_or_pass');
