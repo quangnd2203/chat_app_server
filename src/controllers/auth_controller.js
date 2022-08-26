@@ -56,17 +56,7 @@ module.exports.authorized = async (user, token) => {
         1,
         null,
         {
-            user: new UserModel(
-                user.id,
-                user.uid,
-                user.name,
-                user.email,
-                user.accountType,
-                user.avatar,
-                user.background,
-                user.created_at,
-                user.updated_at,
-            ),
+            user: user,
             accessToken: token,
         }
     );

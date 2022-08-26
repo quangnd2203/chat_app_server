@@ -3,9 +3,9 @@ const mongoose = require("mongoose");
 const untils = require('../utils/utils');
 
 const schema = new mongoose.Schema({
-    uid: { type: String, require: true, trim: true, unique: true},
+    uid: { type: String, require: true, trim: true, unique: true },
     name: { type: String, require: [true, 'name is required'], trim: true },
-    email: { type: String, require: [true, 'email is required'], trim: true, unique: true},
+    email: { type: String, require: [true, 'email is required'], trim: true, unique: true },
     password: { type: String, trim: true },
     accountType: { type: String, enum: ['normal', 'google', 'facebook'], require: [true, 'accountType is required'], trim: true },
     avatar: { type: String, trim: true },
@@ -15,7 +15,7 @@ const schema = new mongoose.Schema({
 }, {
     timestamps: true,
     statics: {
-        fromJson (json){
+        fromJson(json) {
             return {
                 uid: json.uid,
                 name: json.name,
@@ -26,24 +26,51 @@ const schema = new mongoose.Schema({
             }
         },
 
-        register (name, email, password, type, fcmToken){
-            return this.create({
-                uid: untils.generateUUID(),
-                name: name,
+        async register(name, email, password, type, accessToken) {
+            try {
+                const user = await this.create({
+                    uid: untils.generateUUID(),
+                    name: name,
+                    email: email,
+                    password: password,
+                    accountType: type,
+                    avatar: null,
+                    background: null,
+                    accessToken: accessToken,
+                    fcmToken: null,
+                });
+                return user;
+            } catch (err) {
+                throw Error('user already exists');
+            }
+
+        },
+
+        async login(email, password, accountType, accessToken) {
+            const user = await this.findOneAndUpdate({
                 email: email,
                 password: password,
-                accountType: type,
-                avatar: null,
-                background: null,
+                accountType,
+            }, {
+                accessToken: accessToken,
+            });
+            if (user == null) throw Error('ivalid_user');
+            return user;
+        },
+
+        updateFcmToken(uid, fcmToken) {
+            this.updateMany({
                 fcmToken: fcmToken,
-                accessToken: null,
-            }).catch((err) => {
-                throw Error('user already exists');
+            }).then((value) => {
+                this.updateOne({
+                    uid: uid
+                }, {
+
+                },
+                );
             });
         }
     }
 });
 
-var UserModel = mongoose.model('UserModel', schema);
-
-module.exports = UserModel;
+module.exports = mongoose.model('UserModel', schema);
