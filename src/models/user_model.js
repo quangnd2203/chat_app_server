@@ -1,4 +1,3 @@
-const { json } = require("express");
 const mongoose = require("mongoose");
 
 const schema = new mongoose.Schema({
@@ -51,14 +50,16 @@ const schema = new mongoose.Schema({
                 accountType,
             }, {
                 accessToken: accessToken,
+            }, {
+                new: true,
             });
             if (user == null) throw Error('ivalid_user');
             return user;
         },
     
-        updateFcmToken (_id, fcmToken){
-            this.updateMany({fcmToken: fcmToken,}, {fcmToken: null});
-            this.findByIdAndUpdate(_id, {fcmToken: fcmToken});
+        async updateFcmToken (_id, fcmToken){
+            await this.updateMany({fcmToken: fcmToken,}, {fcmToken: null});
+            await this.findByIdAndUpdate(_id, {fcmToken: fcmToken})
         }
     },
 });

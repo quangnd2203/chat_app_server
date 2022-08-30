@@ -3,7 +3,7 @@ const NetworkResponse = require('../models/network_response');
 
 module.exports.onCreateConversation = async (io, socket, data) => {
     try {
-        const networkResponse = await conversationRepository.createConversation(socket.user.uid, data.uid);
+        const networkResponse = await conversationRepository.createConversation(socket.user.uid, data.uids);
         socket.emit('onCreateConversation', networkResponse);
     } catch (e) {
         console.log(e);

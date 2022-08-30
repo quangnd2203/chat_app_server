@@ -18,7 +18,7 @@ module.exports.login = async (email, password, fcmToken, accountType = 'normal')
 }
 
 module.exports.authorized = async (email, token,) => {
-    const user = await UserModel.findOne({ email: email,token: token});
+    const user = await UserModel.findOne({email: email, accessToken: token});
     if (user == null) throw Error('ivalid_user');
     return new NetworkResponse(
         1,

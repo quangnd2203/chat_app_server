@@ -15,6 +15,7 @@ module.exports.authorizedServer = async (request, response, next) => {
         request.token = token;
         next();
     }catch(error){
+        console.log(error);
         response.status(200).send(NetworkResponse.fromErrors('Not authorized to access this resource'));
     }
 }
@@ -31,6 +32,7 @@ module.exports.authorizeSocket = async (socket, next) => {
         socket.token = token;
         next();
     }catch(error){
+        console.log(error);
         next(NetworkResponse.fromErrors('Not authorized to access this resource'));
     }
 }

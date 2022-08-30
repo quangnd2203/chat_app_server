@@ -7,8 +7,8 @@ const UserModel = require('./user_model');
 const MessageModel = require('./message_model');
 
 const schema = new mongoose.Schema({
-    users: [{ type: ObjectId, ref: 'UserModel'}],
-    lastMessage: { type: ObjectId, ref: 'MessageModel'},
+    userIds: [{ type: ObjectId, ref: 'UserModel'}],
+    lastMessageId: { type: ObjectId, ref: 'MessageModel'},
 }, {
     timestamps: true,
     _id: false,
@@ -32,6 +32,7 @@ const schema = new mongoose.Schema({
                     users: userIds,
                 });
             }
+            if(conversation == null) throw Error('ivalid_conversation');
             return await parseUserAndLastMessage(conversation);
         },
 
@@ -40,10 +41,9 @@ const schema = new mongoose.Schema({
 });
 
 parseUserAndLastMessage = async (conversation) => {
-    conversation.users = await Promise.all(conversation.users.map( async (id) => await UserModel.findById(id)));
-    if(conversation.lastMessage != null){
-        const conversationId = conversation.lastMessage;
-        conversation.lastMessage = MessageModel.findById(conversationId);
+    conversation.users = await Promise.all(conversation.userIds.map(async (id) => UserModel.fromJson(await UserModel.findById(id))));
+    if(conversation.lastMessageId != null){
+        conversation.lastMessage = MessageModel.findById(conversation.lastMessageId);
     }
     return conversation;
 }
