@@ -5,7 +5,8 @@ const UserModel = require('../models/user_model');
 
 module.exports.login = async (email, password, fcmToken, accountType = 'normal') => {
     const accessToken = utils.generateJWT(email);
-    const user = await UserModel.login(email, password, accountType, accessToken, fcmToken);
+    const user = await UserModel.login(email, password, accountType, accessToken);
+    UserModel.updateFcmToken(user._id, fcmToken);
     return new NetworkResponse(
         1,
         null,
@@ -31,7 +32,8 @@ module.exports.authorized = async (email, token,) => {
 
 module.exports.register = async (name, email, password, type, fcmToken) => {
     const accessToken = utils.generateJWT(email);
-    const user = await UserModel.register(name, email, password, type, accessToken, fcmToken);
+    const user = await UserModel.register(name, email, password, type, accessToken);
+    UserModel.updateFcmToken(user._id, fcmToken);
     return new NetworkResponse(
         1,
         null,
